@@ -8,13 +8,41 @@
 #ifndef HAARWAVELETTRANSFORM_H_
 #define HAARWAVELETTRANSFORM_H_
 
+#include <cassert>
+#include <FreeImage.h>
+
+#include "UnsignedInteger.h"
+
 class HaarWaveletTransform {
 public:
 	HaarWaveletTransform();
-	bool initFromFilename(const char* filename);
 
-	HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height);
+	/*
+	 * 		Initialize wavelet transform data. This function don't copy data just assign
+	 * 		pointer and image size, from this time pointer imageData belongs to class instance
+	 * 		and will be deleted on destructor call. Width and height must be powers of two,
+	 * 		and describe size of data. This function don't cleanup allocated memory, if
+	 * 		transform contains data call before this method cleanup method.
+	 */
+	void setData(double* imageData, unsigned int width, unsigned int height);
+	/*
+	 * 		Initialize wavelet transform data. This function copy data using pointer imageData.
+	 * 		Width and height don't have to be powers of two, it must describe only size of input data.
+	 * 		If width or height isn't powers of two function will calculate closest power of two and
+	 * 		fill empty space with 0. This function cleans up previous allocated memory.
+	 */
+	void copyData(double* imageData, unsigned int width, unsigned int height);
+	/*
+	 * 		Constructor of transform if CopyData is set to true it calls copyData, else it
+	 * 		calls setData method.
+	 */
+	HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height, bool CopyData = true);
+
 	~HaarWaveletTransform();
+	/*
+	 * 		Function called by destructior, deallocates memory used by transform.
+	 */
+	void cleanup();
 
 	void transform();
 	void inverseTransform();
