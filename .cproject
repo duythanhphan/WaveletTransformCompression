@@ -23,7 +23,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.mingw.lib.debug.1753813367." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.mingw.lib.debug.265837982" name="MinGW GCC" superClass="cdt.managedbuild.toolchain.gnu.mingw.lib.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.mingw.lib.debug.1603056982" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.mingw.lib.debug"/>
-							<builder buildPath="${workspace_loc:/WaveletTransformCompression/Debug}" id="cdt.managedbuild.tool.gnu.builder.mingw.base.912006127" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" superClass="cdt.managedbuild.tool.gnu.builder.mingw.base"/>
+							<builder buildPath="${workspace_loc:/WaveletTransformCompression/Debug}" id="cdt.managedbuild.tool.gnu.builder.mingw.base.912006127" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="3" superClass="cdt.managedbuild.tool.gnu.builder.mingw.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.mingw.lib.debug.1338532677" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.mingw.lib.debug">
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1482484590" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -31,7 +31,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.lib.debug.1201092628" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.lib.debug">
 								<option id="gnu.cpp.compiler.mingw.lib.debug.option.optimization.level.1174210764" name="Optimization Level" superClass="gnu.cpp.compiler.mingw.lib.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.mingw.lib.debug.option.debugging.level.1418569929" name="Debug Level" superClass="gnu.cpp.compiler.mingw.lib.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.include.paths.763067498" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.763067498" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\MinGW\External_Libraries\FreeImage&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.285287744" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -110,5 +110,8 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.mingw.lib.debug.1753813367;cdt.managedbuild.config.gnu.mingw.lib.debug.1753813367.;cdt.managedbuild.tool.gnu.c.compiler.mingw.lib.debug.42971524;cdt.managedbuild.tool.gnu.c.compiler.input.1328086259">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/WaveletTransformCompression"/>
 	</storageModule>
 </cproject>
