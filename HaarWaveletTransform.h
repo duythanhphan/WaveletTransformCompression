@@ -11,6 +11,8 @@
 class HaarWaveletTransform {
 public:
 	HaarWaveletTransform();
+	bool initFromFilename(const char* filename);
+
 	HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height);
 	~HaarWaveletTransform();
 

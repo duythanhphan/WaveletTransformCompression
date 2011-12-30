@@ -11,6 +11,10 @@
 
 HaarWaveletTransform::HaarWaveletTransform() : m_pImageTransform(0), m_iWidth(0), m_iHeight(0) { }
 
+bool HaarWaveletTransform::initFromFilename(const char* filename) {
+	return true;
+}
+
 HaarWaveletTransform::HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height) :
 m_iWidth(width), m_iHeight(height) {
 	m_pImageTransform = new double[m_iWidth * m_iHeight];
