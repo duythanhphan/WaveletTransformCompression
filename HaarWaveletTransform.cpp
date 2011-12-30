@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "HaarWaveletTransform.h"
+#include "UnsignedInteger.h"
 
 HaarWaveletTransform::HaarWaveletTransform() : m_pImageTransform(0), m_iWidth(0), m_iHeight(0) { }
 
@@ -15,10 +16,25 @@ bool HaarWaveletTransform::initFromFilename(const char* filename) {
 	return true;
 }
 
-HaarWaveletTransform::HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height) :
-m_iWidth(width), m_iHeight(height) {
+HaarWaveletTransform::HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height) {
+	m_iWidth = UnsignedInteger::getClosestPowerOfTwo(width);
+	m_iHeight = UnsignedInteger::getClosestPowerOfTwo(height);
+
 	m_pImageTransform = new double[m_iWidth * m_iHeight];
-	memcpy(m_pImageTransform, imageData, m_iWidth * m_iHeight * sizeof(double));
+	const size_t bytesInRow = width * sizeof(double);
+	const size_t bytesToFill = (m_iWidth - width) * sizeof(double);
+
+	for(unsigned int y = 0; y < height; ++y) {
+		memcpy(&m_pImageTransform[y * m_iWidth], &imageData[y * width], bytesInRow);
+		memset(&m_pImageTransform[(y * m_iWidth) + width], 0, bytesToFill);
+	}
+
+	const size_t bytesInTransformRow = m_iWidth * sizeof(double);
+	for(unsigned int y = height; y < m_iHeight; ++y) {
+		memset(&m_pImageTransform[y * m_iWidth], 0, bytesInTransformRow);
+	}
+
+	//memcpy(m_pImageTransform, imageData, m_iWidth * m_iHeight * sizeof(double));
 }
 
 HaarWaveletTransform::~HaarWaveletTransform() {
