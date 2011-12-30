@@ -7,7 +7,7 @@
 
 #include "UnsignedInteger.h"
 
-const unsigned int NUMBER_OF_BITS = 8 * sizeof(unsigned int);
+const unsigned int UnsignedInteger::NUMBER_OF_BITS = 8 * sizeof(unsigned int);
 
 bool UnsignedInteger::isPowerOfTwo(unsigned int Integer) {
 	unsigned int setBitsCounter = 0;
@@ -21,4 +21,28 @@ bool UnsignedInteger::isPowerOfTwo(unsigned int Integer) {
 	}
 
 	return setBitsCounter == 1;
+}
+
+unsigned int UnsignedInteger::getClosestPowerOfTwo(unsigned int Integer) {
+	unsigned int lastSetBit = 0;
+	unsigned int setBitsCounter = 0;
+	unsigned int mask = 1;
+
+	for(unsigned int i = 0; i < NUMBER_OF_BITS; ++i) {
+		if((Integer & mask) != 0) {
+			lastSetBit = i;
+			++setBitsCounter;
+		}
+		mask <<= 1;
+	}
+
+	if(setBitsCounter == 1) {
+		return Integer;
+	}
+
+	if(lastSetBit == 0) {
+		return 1;
+	}
+
+	return 1 << (lastSetBit + 1);
 }

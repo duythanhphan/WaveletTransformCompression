@@ -11,6 +11,7 @@
 class UnsignedInteger {
 public:
 	static bool isPowerOfTwo(unsigned int Integer);
+	static unsigned int getClosestPowerOfTwo(unsigned int Integer);
 
 public:
 	static const unsigned int NUMBER_OF_BITS;
