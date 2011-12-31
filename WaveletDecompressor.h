@@ -13,7 +13,7 @@
 #include <FreeImage.h>
 
 #include "HaarWaveletTransform.h"
-#include "Image.h"
+#include "WaveletCompressor.h"
 
 class WaveletDecompressor {
 public:
@@ -24,6 +24,15 @@ public:
 	bool decompress();
 
 private:
+	bool readHeader();
+	double* allocateTransformMemory();
+	bool checkFileLength();
+
+	void setPixels(int pixelPosition);
+	inline void readData(double* transformMemory);
+	void decompressRGB(double* transformMemory);
+
+private:
 	WaveletTransform* m_pWaveletTransform;
 	FIBITMAP* m_pDib;
 
@@ -31,6 +40,13 @@ private:
 	std::ifstream m_inputFile;
 
 	unsigned int m_iFileLength;
+	WaveletCompressor::Header m_header;
 };
+
+void WaveletDecompressor::readData(double* transformMemory) {
+	unsigned int size = m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight() * sizeof(double);
+	char* pTransformMemory = (char*)transformMemory;
+	m_inputFile.read(pTransformMemory, size);
+}
 
 #endif /* WAVELETDECOMPRESSOR_H_ */

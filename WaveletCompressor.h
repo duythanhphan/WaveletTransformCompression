@@ -20,7 +20,6 @@ public:
 	};
 
 	struct Header {
-		unsigned int TransformWidth, TransformHeight;
 		unsigned int ImageWidth, ImageHeight;
 		unsigned int BitsPerPixel;
 		WaveletType wavletType;
@@ -55,8 +54,6 @@ private:
 
 void WaveletCompressor::saveHeader(unsigned int BitsPerPixel, WaveletType waveletType) {
 	Header header;
-	header.TransformWidth = m_pWaveletTransform->getWidth();
-	header.TransformHeight = m_pWaveletTransform->getHeight();
 	header.ImageWidth = FreeImage_GetWidth(m_image.getDib());
 	header.ImageHeight = FreeImage_GetHeight(m_image.getDib());
 	header.BitsPerPixel = BitsPerPixel;
