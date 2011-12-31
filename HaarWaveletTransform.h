@@ -8,48 +8,22 @@
 #ifndef HAARWAVELETTRANSFORM_H_
 #define HAARWAVELETTRANSFORM_H_
 
-#include <cassert>
-#include <FreeImage.h>
+#include "WaveletTransform.h"
 
-#include "UnsignedInteger.h"
-
-class HaarWaveletTransform {
+class HaarWaveletTransform : public WaveletTransform {
 public:
 	HaarWaveletTransform();
-
-	/*
-	 * 		Initialize wavelet transform data. This function don't copy data just assign
-	 * 		pointer and image size, from this time pointer imageData belongs to class instance
-	 * 		and will be deleted on destructor call. Width and height must be powers of two,
-	 * 		and describe size of data. This function don't cleanup allocated memory, if
-	 * 		transform contains data call before this method cleanup method.
-	 */
-	void setData(double* imageData, unsigned int width, unsigned int height);
-	/*
-	 * 		Initialize wavelet transform data. This function copy data using pointer imageData.
-	 * 		Width and height don't have to be powers of two, it must describe only size of input data.
-	 * 		If width or height isn't powers of two function will calculate closest power of two and
-	 * 		fill empty space with 0. This function cleans up previous allocated memory.
-	 */
-	void copyData(double* imageData, unsigned int width, unsigned int height);
 	/*
 	 * 		Constructor of transform if CopyData is set to true it calls copyData, else it
 	 * 		calls setData method.
 	 */
 	HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height, bool CopyData = true);
 
-	~HaarWaveletTransform();
-	/*
-	 * 		Function called by destructior, deallocates memory used by transform.
-	 */
-	void cleanup();
+	virtual ~HaarWaveletTransform();
 
-	void transform();
-	void inverseTransform();
 
-	inline unsigned int getWidth();
-	inline unsigned int getHeight();
-	inline double getItem(unsigned int row, unsigned int column);
+	virtual void transform();
+	virtual void inverseTransform();
 
 private:
 	void decompositionStep(double* data, double* transform, unsigned int size);
@@ -60,23 +34,6 @@ private:
 
 	void copyColumn(double* data, unsigned int column);
 	void setColumn(double* data, unsigned int column);
-
-private:
-	double* m_pImageTransform;
-	unsigned int m_iWidth;
-	unsigned int m_iHeight;
 };
-
-unsigned int HaarWaveletTransform::getWidth() {
-	return m_iWidth;
-}
-
-unsigned int HaarWaveletTransform::getHeight() {
-	return m_iHeight;
-}
-
-double HaarWaveletTransform::getItem(unsigned int row, unsigned int column) {
-	return m_pImageTransform[(row * m_iWidth) + column];
-}
 
 #endif /* HAARWAVELETTRANSFORM_H_ */

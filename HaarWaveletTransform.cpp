@@ -6,66 +6,16 @@
  */
 
 #include <cstring>
-#include <cstdio>
 
 #include "HaarWaveletTransform.h"
 
-HaarWaveletTransform::HaarWaveletTransform() : m_pImageTransform(0), m_iWidth(0), m_iHeight(0) { }
+HaarWaveletTransform::HaarWaveletTransform() : WaveletTransform() { }
 
 HaarWaveletTransform::HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height, bool CopyData) :
-	m_pImageTransform(0), m_iWidth(0), m_iHeight(0) {
-
-	if(CopyData) {
-		copyData(imageData, width, height);
-	} else {
-		setData(imageData, width, height);
-	}
+	WaveletTransform(imageData, width, height, CopyData) {
 }
 
-void HaarWaveletTransform::copyData(double* imageData, unsigned int width, unsigned int height) {
-	cleanup();
-
-	m_iWidth = UnsignedInteger::getClosestPowerOfTwo(width);
-	m_iHeight = UnsignedInteger::getClosestPowerOfTwo(height);
-
-	m_pImageTransform = new double[m_iWidth * m_iHeight];
-	const size_t bytesInRow = width * sizeof(double);
-	const size_t bytesToFill = (m_iWidth - width) * sizeof(double);
-
-	for(unsigned int y = 0; y < height; ++y) {
-		memcpy(&m_pImageTransform[y * m_iWidth], &imageData[y * width], bytesInRow);
-		memset(&m_pImageTransform[(y * m_iWidth) + width], 0, bytesToFill);
-	}
-
-	const size_t bytesInTransformRow = m_iWidth * sizeof(double);
-	for(unsigned int y = height; y < m_iHeight; ++y) {
-		memset(&m_pImageTransform[y * m_iWidth], 0, bytesInTransformRow);
-	}
-}
-
-void HaarWaveletTransform::setData(double* imageData, unsigned int width, unsigned int height) {
-	assert(width == UnsignedInteger::getClosestPowerOfTwo(width) &&
-			"HaarWaveletTransform::init width must be power of two");
-	assert(height == UnsignedInteger::getClosestPowerOfTwo(height) &&
-			"HaarWaveletTransform::init height must be power of two");
-
-	m_pImageTransform = imageData;
-	m_iWidth = width;
-	m_iHeight = height;
-}
-
-void HaarWaveletTransform::cleanup() {
-	if(m_pImageTransform != 0) {
-		delete[] m_pImageTransform;
-		m_pImageTransform = 0;
-		m_iWidth = 0;
-		m_iHeight = 0;
-	}
-}
-
-HaarWaveletTransform::~HaarWaveletTransform() {
-	cleanup();
-}
+HaarWaveletTransform::~HaarWaveletTransform() { }
 
 void HaarWaveletTransform::copyColumn(double* data, unsigned int column) {
 	for(unsigned int i = 0; i < m_iHeight; ++i) {
