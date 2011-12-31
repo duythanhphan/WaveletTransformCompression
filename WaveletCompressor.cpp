@@ -43,8 +43,7 @@ WaveletCompressor::~WaveletCompressor() {
 }
 
 bool WaveletCompressor::compress(WaveletType waveletType) {
-	FIBITMAP* dib = m_image.getDib();
-	FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(dib);
+	FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(m_image.getDib());
 
 	if(imageType != FIT_BITMAP) {
 		fprintf(stderr, "Unsupported image bitmap type.\n");
@@ -60,8 +59,8 @@ bool WaveletCompressor::compress(WaveletType waveletType) {
 		return false;
 	}
 
-	unsigned int bitsPerPixel = FreeImage_GetBPP(dib);
-	m_iBytesPerPixel = bitsPerPixel * 8;
+	unsigned int bitsPerPixel = FreeImage_GetBPP(m_image.getDib());
+	m_iBytesPerPixel = bitsPerPixel / 8;
 	switch(bitsPerPixel) {
 	case 24:
 		compressRGB(waveletType);
