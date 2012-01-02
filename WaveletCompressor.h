@@ -12,6 +12,7 @@
 
 #include "HaarWaveletTransform.h"
 #include "Image.h"
+#include "Quantizer.h"
 
 class WaveletCompressor {
 public:
@@ -40,6 +41,7 @@ private:
 
 	double* allocateTransformMemory();
 	void setTransformMemory(double* pTransformMemory, int pixelPosition);
+	void quantization(double* pTransformMemory);
 	void compressRGB(WaveletType waveletType);
 
 private:
@@ -65,6 +67,7 @@ void WaveletCompressor::saveHeader(unsigned int BitsPerPixel, WaveletType wavele
 void WaveletCompressor::transformSaveComponent(double* transformMemory, int pixelPosition, unsigned int dataSize) {
 	setTransformMemory(transformMemory, pixelPosition);
 	m_pWaveletTransform->transform();
+	quantization(transformMemory);
 	m_outputFile.write((char*)transformMemory, dataSize);
 }
 

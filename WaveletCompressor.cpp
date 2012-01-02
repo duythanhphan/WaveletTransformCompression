@@ -111,6 +111,12 @@ void WaveletCompressor::setTransformMemory(double* pTransformMemory, int pixelPo
 	}
 }
 
+void WaveletCompressor::quantization(double* pTransformMemory) {
+	for(unsigned int i = 0; i < m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight(); ++i) {
+		pTransformMemory[i] = Quantizer::round(pTransformMemory[i]);
+	}
+}
+
 void WaveletCompressor::compressRGB(WaveletType waveletType) {
 	double* transformMemory = allocateTransformMemory();
 	const unsigned int dataSize = m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight() * sizeof(double);

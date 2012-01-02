@@ -41,6 +41,9 @@ private:
 
 	unsigned int m_iFileLength;
 	WaveletCompressor::Header m_header;
+
+	unsigned int m_iTransformWidth;
+	unsigned int m_iTransformHeight;
 };
 
 void WaveletDecompressor::readData(double* transformMemory) {
