@@ -20,15 +20,15 @@ public:
 
 	static inline void setBitFromLeft(unsigned int* toSet, unsigned int position);
 	static inline void setBitFromRight(unsigned int* toSet, unsigned int position);
-	unsigned int reverse(unsigned int toReverse);
+	static unsigned int reverse(unsigned int toReverse);
 };
 
 void UnsignedInteger::setBitFromLeft(unsigned int* toSet, unsigned int position) {
-
+	*toSet |= LEFT_BIT >> position;
 }
 
 void UnsignedInteger::setBitFromRight(unsigned int* toSet, unsigned int position) {
-
+	*toSet |= RIGHT_BIT << position;
 }
 
 #endif /* UNSIGNEDINTEGER_H_ */

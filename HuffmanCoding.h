@@ -156,18 +156,30 @@ bool HuffmanCoding<T>::getTable(std::map<T, int>& codeTable) {
 	}
 
 	Node* node = 0;
+	unsigned int bitPosition = 0;
+	unsigned int reverseCode = 0;
+	unsigned int code = 0;
+
 	for(unsigned int i = 0; i < m_iNumberOfLeafs; ++i) {
 		node = &m_pLeafs[i];
+		bitPosition = 0;
+		reverseCode = 0;
+		code = 0;
 
 		while(node->parent != 0) {
-			if(node->parent->left == node) {
-				//node is on the left of parent encode 0
-			} else {
+			if(node->parent->right == node) {
 				//node is on the right of parent encode 1
+				UnsignedInteger::setBitFromRight(&reverseCode, bitPosition);
 			}
+			//else node is on the left of parent encode 0,
+			//already set value set to 0 at the beginning
 
+			++bitPosition;
 			node = node->parent;
 		}
+
+		code = UnsignedInteger::reverse(reverseCode);
+		codeTable[m_pLeafs[i].value] = code;
 	}
 
 	return true;

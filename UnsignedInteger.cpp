@@ -50,6 +50,13 @@ unsigned int UnsignedInteger::getClosestPowerOfTwo(unsigned int Integer) {
 }
 
 unsigned int UnsignedInteger::reverse(unsigned int toReverse) {
+	unsigned int reversed = 0;
 
-	return 0;
+	for(unsigned int i = 0; i < NUMBER_OF_BITS; ++i) {
+		if((toReverse & (RIGHT_BIT << i)) != 0) {
+			setBitFromLeft(&reversed, i);
+		}
+	}
+
+	return reversed;
 }
