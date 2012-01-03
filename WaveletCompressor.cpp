@@ -112,8 +112,9 @@ void WaveletCompressor::setTransformMemory(double* pTransformMemory, int pixelPo
 }
 
 void WaveletCompressor::quantization(double* pTransformMemory) {
+	const double step = 1.0 / 16.0;
 	for(unsigned int i = 0; i < m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight(); ++i) {
-		pTransformMemory[i] = Quantizer::round(pTransformMemory[i]);
+		pTransformMemory[i] = Quantizer::getApproximation(pTransformMemory[i], step);
 	}
 }
 
