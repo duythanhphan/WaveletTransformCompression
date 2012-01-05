@@ -112,7 +112,7 @@ void WaveletCompressor::setTransformMemory(double* pTransformMemory, int pixelPo
 }
 
 void WaveletCompressor::quantization(double* pTransformMemory) {
-	const double step = 1.0 / 16.0;
+	const double step = 1.0 / 8.0;
 	for(unsigned int i = 0; i < m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight(); ++i) {
 		pTransformMemory[i] = Quantizer::getApproximation(pTransformMemory[i], step);
 	}
@@ -126,4 +126,28 @@ void WaveletCompressor::compressRGB(WaveletType waveletType) {
 	transformSaveComponent(transformMemory, FI_RGBA_RED, dataSize);
 	transformSaveComponent(transformMemory, FI_RGBA_GREEN, dataSize);
 	transformSaveComponent(transformMemory, FI_RGBA_BLUE, dataSize);
+}
+
+void WaveletCompressor::buildCodeTable(double* transformMemory) {
+//	m_codeTable.clear();
+//	map<double, unsigned int> countTable;
+//	map<double, unsigned int>::iterator it;
+//
+//	for(unsigned int i = 0; i < m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight(); ++i) {
+//		it = countTable.find(transformMemory[i]);
+//		if(it == countTable.end()) {
+//			countTable.insert(std::pair<double, unsigned int>(transformMemory[i], 1));
+//		} else {
+//			it->second += 1;
+//		}
+//	}
+
+	RLE<double> rle(transformMemory, m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight());
+	rle.encode();
+	RLE<double>::Run* pData = rle.getData();
+	ofstream rleLog("rle.txt");
+	for(unsigned int i = 0; i < rle.getEncodedDataSize(); ++i) {
+		rleLog << pData[i].value << " => " << pData[i].run << endl;
+	}
+	rleLog.close();
 }

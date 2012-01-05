@@ -9,10 +9,13 @@
 #define WAVLETCOMPRESSOR_H_
 
 #include <fstream>
+#include <map>
 
 #include "HaarWaveletTransform.h"
 #include "Image.h"
 #include "Quantizer.h"
+#include "RLE.h"
+#include "HuffmanCoding.h"
 
 class WaveletCompressor {
 public:
@@ -44,10 +47,13 @@ private:
 	void quantization(double* pTransformMemory);
 	void compressRGB(WaveletType waveletType);
 
+	void buildCodeTable(double* transformMemory);
+
 private:
 	WaveletTransform* m_pWaveletTransform;
 	Image m_image;
 	std::ofstream m_outputFile;
+	std::map<double, HuffmanCoding<double>::Code > m_codeTable;
 
 	unsigned int m_iImageWidth;
 	unsigned int m_iImageHeight;
@@ -68,6 +74,9 @@ void WaveletCompressor::transformSaveComponent(double* transformMemory, int pixe
 	setTransformMemory(transformMemory, pixelPosition);
 	m_pWaveletTransform->transform();
 	quantization(transformMemory);
+
+	buildCodeTable(transformMemory);
+
 	m_outputFile.write((char*)transformMemory, dataSize);
 }
 
