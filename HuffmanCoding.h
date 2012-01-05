@@ -42,13 +42,18 @@ public:
 		Node* node;
 	};
 
+	struct Code {
+		unsigned int code;
+		unsigned int size;
+	};
+
 public:
 	HuffmanCoding(Leaf* pLeafs, unsigned int size);
 
 	~HuffmanCoding();
 
 	void createCodeTable();
-	bool getTable(std::map<T, int>& codeTable);
+	bool getTable(std::map<T, Code>& codeTable);
 
 private:
 	Leaf* m_pLeafs;
@@ -124,6 +129,7 @@ void HuffmanCoding<T>::createCodeTable() {
 	}
 
 	Heap<QueueItem> heap(pQueueItems, m_iNumberOfLeafs);
+	heap.buildHeap();
 	QueueItem item1, item2, newItem;
 	Node* newNode = 0;
 
@@ -150,7 +156,7 @@ void HuffmanCoding<T>::createCodeTable() {
 }
 
 template<typename T>
-bool HuffmanCoding<T>::getTable(std::map<T, int>& codeTable) {
+bool HuffmanCoding<T>::getTable(std::map<T, Code>& codeTable) {
 	if(m_pRoot == 0) {
 		return false;
 	}
@@ -158,13 +164,15 @@ bool HuffmanCoding<T>::getTable(std::map<T, int>& codeTable) {
 	Node* node = 0;
 	unsigned int bitPosition = 0;
 	unsigned int reverseCode = 0;
-	unsigned int code = 0;
+	Code code;
+	const unsigned int shiftMax = UnsignedInteger::NUMBER_OF_BITS - 1;
+	unsigned int shift = 0;
 
 	for(unsigned int i = 0; i < m_iNumberOfLeafs; ++i) {
 		node = &m_pLeafs[i];
 		bitPosition = 0;
 		reverseCode = 0;
-		code = 0;
+		code.code = 0;
 
 		while(node->parent != 0) {
 			if(node->parent->right == node) {
@@ -172,13 +180,16 @@ bool HuffmanCoding<T>::getTable(std::map<T, int>& codeTable) {
 				UnsignedInteger::setBitFromRight(&reverseCode, bitPosition);
 			}
 			//else node is on the left of parent encode 0,
-			//already set value set to 0 at the beginning
+			//already set reversedCode = 0 at beginning of for loop
 
 			++bitPosition;
 			node = node->parent;
 		}
 
-		code = UnsignedInteger::reverse(reverseCode);
+		shift = shiftMax - (bitPosition - 1);
+		code.code = reverseCode << shift;
+		//code.code = UnsignedInteger::reverse(reverseCode);
+		code.size = bitPosition;
 		codeTable[m_pLeafs[i].value] = code;
 	}
 
