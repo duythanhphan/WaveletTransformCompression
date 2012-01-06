@@ -40,17 +40,20 @@ public:
 
 private:
 	inline void saveHeader(unsigned int BitsPerPixel, WaveletType waveletType);
-	inline void transformSaveComponent(double* transformMemory, int pixelPosition, unsigned int dataSize);
 
-	double* allocateTransformMemory();
-	void setTransformMemory(double* pTransformMemory, int pixelPosition);
-	void quantization(double* pTransformMemory);
+	double* allocateTransformMemory(WaveletTransform* pWaveletTransform);
+	void setTransformMemory(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB);
+
+	void quantization(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB);
 	void compressRGB(WaveletType waveletType);
 
-	void buildCodeTable(double* transformMemory);
+	void countRuns(RLE<double>::Run* pData, unsigned int size, std::map<RLE<double>::Run, unsigned int >& countTable);
+	void buildCodeTable();
 
 private:
-	WaveletTransform* m_pWaveletTransform;
+	WaveletTransform* m_pWaveletTransformR;
+	WaveletTransform* m_pWaveletTransformG;
+	WaveletTransform* m_pWaveletTransformB;
 	Image m_image;
 	std::ofstream m_outputFile;
 	std::map<double, HuffmanCoding<double>::Code > m_codeTable;
@@ -68,16 +71,6 @@ void WaveletCompressor::saveHeader(unsigned int BitsPerPixel, WaveletType wavele
 	header.wavletType = waveletType;
 
 	m_outputFile.write((char*)&header, HEADER_SIZE);
-}
-
-void WaveletCompressor::transformSaveComponent(double* transformMemory, int pixelPosition, unsigned int dataSize) {
-	setTransformMemory(transformMemory, pixelPosition);
-	m_pWaveletTransform->transform();
-	quantization(transformMemory);
-
-	buildCodeTable(transformMemory);
-
-	m_outputFile.write((char*)transformMemory, dataSize);
 }
 
 #endif /* WAVLETCOMPRESSOR_H_ */

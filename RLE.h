@@ -16,6 +16,8 @@ public:
 	struct Run {
 		T value;
 		unsigned int run;
+		bool operator<(const Run& right) const;
+		bool operator==(const Run& right) const;
 	};
 
 public:
@@ -42,6 +44,16 @@ private:
 	//how much additional memory to allocate if out of space
 	unsigned int m_iAdditionalMemorySize;
 };
+
+template<typename T>
+bool RLE<T>::Run::operator <(const Run& right) const {
+	return (run < right.run) || (value < right.value);
+}
+
+template<typename T>
+bool RLE<T>::Run::operator==(const Run& right) const {
+	return (value == right.value) && (run == right.run);
+}
 
 template<typename T>
 RLE<T>::RLE(T* pData, unsigned int dataSize) :

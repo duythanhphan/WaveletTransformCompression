@@ -42,6 +42,7 @@ public:
 	inline unsigned int getWidth();
 	inline unsigned int getHeight();
 	inline double getItem(unsigned int row, unsigned int column);
+	inline double* getTransfomrMemory();
 
 protected:
 	double* m_pImageTransform;
@@ -59,6 +60,10 @@ unsigned int WaveletTransform::getHeight() {
 
 double WaveletTransform::getItem(unsigned int row, unsigned int column) {
 	return m_pImageTransform[(row * m_iWidth) + column];
+}
+
+double* WaveletTransform::getTransfomrMemory() {
+	return m_pImageTransform;
 }
 
 #endif /* IWAVELET_H_ */
