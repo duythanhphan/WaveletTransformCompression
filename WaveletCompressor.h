@@ -48,7 +48,9 @@ private:
 	void compressRGB(WaveletType waveletType);
 
 	void countRuns(RLE<double>::Run* pData, unsigned int size, std::map<RLE<double>::Run, unsigned int >& countTable);
-	void buildCodeTable();
+	HuffmanCoding<RLE<double>::Run>::Leaf* getLeafs(
+			RLE<double>& rleR, RLE<double>& rleG, RLE<double>& rleB, unsigned int* size);
+	void encode();
 
 private:
 	WaveletTransform* m_pWaveletTransformR;

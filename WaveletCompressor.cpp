@@ -10,6 +10,7 @@
 
 #include "WaveletCompressor.h"
 #include "UnsignedInteger.h"
+#include "Encoder.h"
 
 using namespace std;
 
@@ -159,14 +160,14 @@ void WaveletCompressor::compressRGB(WaveletType waveletType) {
 
 	quantization(transformMemoryR, transformMemoryG, transformMemoryB);
 
-	buildCodeTable();
+	encode();
 
 	m_outputFile.write((char*)transformMemoryR, dataSize);
 	m_outputFile.write((char*)transformMemoryG, dataSize);
 	m_outputFile.write((char*)transformMemoryB, dataSize);
 }
 
-void countRuns(RLE<double>::Run* pData, unsigned int size, std::map<RLE<double>::Run, unsigned int >& countTable) {
+void WaveletCompressor::countRuns(RLE<double>::Run* pData, unsigned int size, map<RLE<double>::Run, unsigned int >& countTable) {
 	map<RLE<double>::Run, unsigned int>::iterator it;
 
 	for(unsigned int i = 0; i < size; ++i) {
@@ -179,7 +180,31 @@ void countRuns(RLE<double>::Run* pData, unsigned int size, std::map<RLE<double>:
 	}
 }
 
-void WaveletCompressor::buildCodeTable() {
+HuffmanCoding<RLE<double>::Run >::Leaf* WaveletCompressor::getLeafs(
+		RLE<double>& rleR, RLE<double>& rleG, RLE<double>& rleB, unsigned int* size) {
+
+	map<RLE<double>::Run, unsigned int> countTable;
+	countRuns(rleR.getData(), rleR.getEncodedDataSize(), countTable);
+	countRuns(rleG.getData(), rleG.getEncodedDataSize(), countTable);
+	countRuns(rleB.getData(), rleB.getEncodedDataSize(), countTable);
+
+	*size = countTable.size();
+	HuffmanCoding<RLE<double>::Run >::Leaf* pLeafs = new HuffmanCoding<RLE<double>::Run >::Leaf[countTable.size()];
+
+	map<RLE<double>::Run, unsigned int>::iterator it;
+	//ofstream log("countTableRuns.txt");
+	unsigned int i = 0;
+	for(it = countTable.begin(); it != countTable.end(); ++it, ++i) {
+		pLeafs[i].value = it->first;
+		pLeafs[i].count = it->second;
+		//log << "(" << it->first.value << "\t, " << it->first.run << ") \t=>\t " << it->second << endl;
+	}
+	//log.close();
+
+	return pLeafs;
+}
+
+void WaveletCompressor::encode() {
 	const unsigned int size = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight();
 	RLE<double> rleR(m_pWaveletTransformR->getTransfomrMemory(), size);
 	rleR.encode();
@@ -188,31 +213,33 @@ void WaveletCompressor::buildCodeTable() {
 	RLE<double> rleB(m_pWaveletTransformR->getTransfomrMemory(), size);
 	rleB.encode();
 
-	map<RLE<double>::Run, unsigned int> countTable;
-	countRuns(rleR.getData(), rleR.getEncodedDataSize(), countTable);
-	countRuns(rleG.getData(), rleG.getEncodedDataSize(), countTable);
-	countRuns(rleB.getData(), rleB.getEncodedDataSize(), countTable);
 
-	//map<RLE<double>::Run, unsigned int>::iterator it;
+	unsigned int leafsSize = 0;
+	HuffmanCoding<RLE<double>::Run>::Leaf* pLeafs = getLeafs(rleR, rleG, rleB, &leafsSize);
+	HuffmanCoding<RLE<double>::Run> huffmanCoding(pLeafs, leafsSize);
+	huffmanCoding.createCodeTable();
 
-	//ofstream rleOut("rleR.txt");
+	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code > codeTable;
+	huffmanCoding.getTable(codeTable);
 
-//	for(unsigned int i = 0; i < rleR.getEncodedDataSize(); ++i) {
-//		//rleOut << pData[i].value << " => " << pData[i].run << endl;
-//		it = countTable.find(pData[i]);
-//		if(it == countTable.end()) {
-//			countTable.insert(std::pair<RLE<double>::Run, unsigned int>(pData[i], 1));
-//		} else {
-//			it->second += 1;
-//		}
-//	}
+	Encoder encoder(size / 4);
 
-	//rleOut.close();
-
-	map<RLE<double>::Run, unsigned int>::iterator it;
-	ofstream log("countTableRuns.txt");
-	for(it = countTable.begin(); it != countTable.end(); ++it) {
-		log << "(" << it->first.value << ", " << it->first.run << ") => " << it->second << endl;
+	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;
+	RLE<double>::Run* pRun = rleR.getData();
+	for(unsigned int i = 0; i < rleR.getEncodedDataSize(); ++i) {
+		it = codeTable.find(pRun[i]);
+		encoder.encode(it->second.code, it->second.size);
 	}
-	log.close();
+
+	pRun = rleG.getData();
+	for(unsigned int i = 0; i < rleG.getEncodedDataSize(); ++i) {
+		it = codeTable.find(pRun[i]);
+		encoder.encode(it->second.code, it->second.size);
+	}
+
+	pRun = rleB.getData();
+	for(unsigned int i = 0; i < rleB.getEncodedDataSize(); ++i) {
+		it = codeTable.find(pRun[i]);
+		encoder.encode(it->second.code, it->second.size);
+	}
 }
