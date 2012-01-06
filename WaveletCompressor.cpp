@@ -19,7 +19,8 @@ const unsigned int WaveletCompressor::HEADER_SIZE = sizeof(Header);
 WaveletCompressor::WaveletCompressor() :
 		m_pWaveletTransformR(0), m_pWaveletTransformG(0), m_pWaveletTransformB(0),
 		m_iImageWidth(0), m_iImageHeight(0),
-		m_iBytesPerPixel(0) { }
+		m_iBytesPerPixel(0), m_iBitsPerPixel(0),
+		m_waveletType(NotSet) { }
 
 bool WaveletCompressor::init(const char* inputFilename, const char* outputFilename) {
 	m_outputFile.open(outputFilename, ofstream::binary);
@@ -64,15 +65,16 @@ bool WaveletCompressor::compress(WaveletType waveletType) {
 		m_pWaveletTransformR = new HaarWaveletTransform();
 		m_pWaveletTransformG = new HaarWaveletTransform();
 		m_pWaveletTransformB = new HaarWaveletTransform();
+		m_waveletType = Haar;
 		break;
 	default:
 		fprintf(stderr, "Unsupported wavelet type.\n");
 		return false;
 	}
 
-	unsigned int bitsPerPixel = FreeImage_GetBPP(m_image.getDib());
-	m_iBytesPerPixel = bitsPerPixel / 8;
-	switch(bitsPerPixel) {
+	unsigned int m_iBitsPerPixel = FreeImage_GetBPP(m_image.getDib());
+	m_iBytesPerPixel = m_iBitsPerPixel / 8;
+	switch(m_iBitsPerPixel) {
 	case 24:
 		compressRGB(waveletType);
 		break;
@@ -149,9 +151,7 @@ void WaveletCompressor::compressRGB(WaveletType waveletType) {
 	transformMemoryR = allocateTransformMemory(m_pWaveletTransformR);
 	transformMemoryG = allocateTransformMemory(m_pWaveletTransformG);
 	transformMemoryB = allocateTransformMemory(m_pWaveletTransformB);
-	const unsigned int dataSize = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight() * sizeof(double);
-
-	saveHeader(24, waveletType);
+	//const unsigned int dataSize = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight() * sizeof(double);
 
 	setTransformMemory(transformMemoryR, transformMemoryG, transformMemoryB);
 	m_pWaveletTransformR->transform();
@@ -162,9 +162,9 @@ void WaveletCompressor::compressRGB(WaveletType waveletType) {
 
 	encode();
 
-	m_outputFile.write((char*)transformMemoryR, dataSize);
-	m_outputFile.write((char*)transformMemoryG, dataSize);
-	m_outputFile.write((char*)transformMemoryB, dataSize);
+//	m_outputFile.write((char*)transformMemoryR, dataSize);
+//	m_outputFile.write((char*)transformMemoryG, dataSize);
+//	m_outputFile.write((char*)transformMemoryB, dataSize);
 }
 
 void WaveletCompressor::countRuns(RLE<double>::Run* pData, unsigned int size, map<RLE<double>::Run, unsigned int >& countTable) {
@@ -192,14 +192,12 @@ HuffmanCoding<RLE<double>::Run >::Leaf* WaveletCompressor::getLeafs(
 	HuffmanCoding<RLE<double>::Run >::Leaf* pLeafs = new HuffmanCoding<RLE<double>::Run >::Leaf[countTable.size()];
 
 	map<RLE<double>::Run, unsigned int>::iterator it;
-	//ofstream log("countTableRuns.txt");
+
 	unsigned int i = 0;
 	for(it = countTable.begin(); it != countTable.end(); ++it, ++i) {
 		pLeafs[i].value = it->first;
 		pLeafs[i].count = it->second;
-		//log << "(" << it->first.value << "\t, " << it->first.run << ") \t=>\t " << it->second << endl;
 	}
-	//log.close();
 
 	return pLeafs;
 }
@@ -241,5 +239,28 @@ void WaveletCompressor::encode() {
 	for(unsigned int i = 0; i < rleB.getEncodedDataSize(); ++i) {
 		it = codeTable.find(pRun[i]);
 		encoder.encode(it->second.code, it->second.size);
+	}
+
+	saveHeader(codeTable);
+	m_outputFile.write((char*)encoder.getData(), encoder.encodedSize() * sizeof(unsigned int));
+}
+
+void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable) {
+	Header header;
+	header.ImageWidth = FreeImage_GetWidth(m_image.getDib());
+	header.ImageHeight = FreeImage_GetHeight(m_image.getDib());
+	header.BitsPerPixel = m_iBitsPerPixel;
+	header.wavletType = m_waveletType;
+	header.CodeTableSize = codeTable.size();
+
+	m_outputFile.write((char*)&header, HEADER_SIZE);
+
+	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;
+	const unsigned int runSize = sizeof(RLE<double>::Run);
+	const unsigned int codeSize = sizeof(HuffmanCoding<RLE<double>::Run>::Code);
+
+	for(it = codeTable.begin(); it != codeTable.end(); ++it) {
+		m_outputFile.write((char*)&it->first, runSize);
+		m_outputFile.write((char*)&it->second, codeSize);
 	}
 }

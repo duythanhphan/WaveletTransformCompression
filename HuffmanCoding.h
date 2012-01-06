@@ -9,6 +9,8 @@
 #define HUFFMANCODING_H_
 
 #include <map>
+#include <vector>
+#include <list>
 
 #include "Heap.h"
 #include "UnsignedInteger.h"
@@ -118,7 +120,44 @@ HuffmanCoding<T>::HuffmanCoding(Leaf* pLeafs, unsigned int size) :
 
 template<typename T>
 HuffmanCoding<T>::~HuffmanCoding() {
-	//TODO delete right stuff
+	if(m_pRoot != 0) {
+
+		std::vector<Node*> nodes;
+		std::list<Node*> queue;
+
+		nodes.push_back(m_pRoot);
+
+		if(m_pRoot->left != 0) {
+			queue.push_back(m_pRoot->left);
+		}
+		if(m_pRoot->right != 0) {
+			queue.push_back(m_pRoot->right);
+		}
+
+		Node* node = 0;
+		while(!queue.empty()) {
+			node = queue.front();
+			queue.pop_front();
+			nodes.push_back(node);
+			if(node->left != 0) {
+				queue.push_back(node->left);
+			}
+			if(node->right != 0) {
+				queue.push_back(node->right);
+			}
+		}
+
+		typename std::vector<Node*>::iterator it;
+		for(it = nodes.begin(); it != nodes.end(); ++it) {
+			delete (*it);
+		}
+		delete m_pLeafs;
+		m_pLeafs = 0;
+		m_pRoot = 0;
+
+	} else if(m_pLeafs != 0) {
+		delete[] m_pLeafs;
+	}
 }
 
 template<typename T>
@@ -188,8 +227,8 @@ bool HuffmanCoding<T>::getTable(std::map<T, Code>& codeTable) {
 
 		shift = shiftMax - (bitPosition - 1);
 		code.code = reverseCode << shift;
-		//code.code = UnsignedInteger::reverse(reverseCode);
 		code.size = bitPosition;
+
 		codeTable[m_pLeafs[i].value] = code;
 	}
 

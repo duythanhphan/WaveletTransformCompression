@@ -20,13 +20,15 @@
 class WaveletCompressor {
 public:
 	enum WaveletType {
-		Haar
+		Haar,
+		NotSet
 	};
 
 	struct Header {
 		unsigned int ImageWidth, ImageHeight;
 		unsigned int BitsPerPixel;
 		WaveletType wavletType;
+		unsigned int CodeTableSize;
 	};
 
 	static const unsigned int HEADER_SIZE;
@@ -39,7 +41,7 @@ public:
 	bool compress(WaveletType waveletType);
 
 private:
-	inline void saveHeader(unsigned int BitsPerPixel, WaveletType waveletType);
+	void saveHeader(std::map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable);
 
 	double* allocateTransformMemory(WaveletTransform* pWaveletTransform);
 	void setTransformMemory(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB);
@@ -63,16 +65,9 @@ private:
 	unsigned int m_iImageWidth;
 	unsigned int m_iImageHeight;
 	unsigned int m_iBytesPerPixel;
+
+	unsigned int m_iBitsPerPixel;
+	WaveletType m_waveletType;
 };
-
-void WaveletCompressor::saveHeader(unsigned int BitsPerPixel, WaveletType waveletType) {
-	Header header;
-	header.ImageWidth = FreeImage_GetWidth(m_image.getDib());
-	header.ImageHeight = FreeImage_GetHeight(m_image.getDib());
-	header.BitsPerPixel = BitsPerPixel;
-	header.wavletType = waveletType;
-
-	m_outputFile.write((char*)&header, HEADER_SIZE);
-}
 
 #endif /* WAVLETCOMPRESSOR_H_ */
