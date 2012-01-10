@@ -47,6 +47,7 @@ public:
 	struct Code {
 		unsigned int code;
 		unsigned int size;
+		bool operator<(const Code& right) const;
 	};
 
 public:
@@ -109,6 +110,17 @@ typename HuffmanCoding<T>::QueueItem& HuffmanCoding<T>::QueueItem::operator =(co
 	}
 	node = right.node;
 	return *this;
+}
+
+/*
+ * 		Code
+ */
+template<typename T>
+bool HuffmanCoding<T>::Code::operator <(const Code& right) const {
+	if(size == right.size) {
+		return code < right.code;
+	}
+	return size < right.size;
 }
 
 /*

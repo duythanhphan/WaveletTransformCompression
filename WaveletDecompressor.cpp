@@ -6,6 +6,7 @@
  */
 
 #include <cstdio>
+#include <iostream>
 
 #include "WaveletDecompressor.h"
 #include "UnsignedInteger.h"
@@ -53,6 +54,24 @@ bool WaveletDecompressor::readHeader() {
 	return true;
 }
 
+bool WaveletDecompressor::readCodeTable() {
+	RLE<double>::Run run;
+	HuffmanCoding<RLE<double>::Run >::Code code;
+	typedef pair<RLE<double>::Run, HuffmanCoding<RLE<double>::Run >::Code > CodeTablePair;
+
+	for(unsigned int i = 0; i < m_header.CodeTableSize; ++i) {
+		m_inputFile.read((char*)&run.value, sizeof(double));
+		m_inputFile.read((char*)&run.run, sizeof(unsigned int));
+
+		m_inputFile.read((char*)&code.code, sizeof(unsigned int));
+		m_inputFile.read((char*)&code.size, sizeof(unsigned int));
+
+		m_codeTable.insert(CodeTablePair(run, code));
+	}
+
+	return true;
+}
+
 double* WaveletDecompressor::allocateTransformMemory() {
 	unsigned int transformWidth = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageWidth);
 	unsigned int transformHeight = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageHeight);
@@ -61,22 +80,6 @@ double* WaveletDecompressor::allocateTransformMemory() {
 	m_pWaveletTransform->setData(transformMemory, transformWidth, transformHeight);
 
 	return transformMemory;
-}
-
-bool WaveletDecompressor::checkFileLength() {
-	unsigned int requiredSize =
-			((m_header.BitsPerPixel / 8) *
-			m_pWaveletTransform->getWidth() *
-			m_pWaveletTransform->getHeight() *
-			sizeof(double)) +
-			WaveletCompressor::HEADER_SIZE;
-
-	if(m_iFileLength < requiredSize) {
-		fprintf(stderr, "Error, not enough data in file\n");
-		return false;
-	}
-
-	return true;
 }
 
 bool WaveletDecompressor::decompress() {
@@ -95,10 +98,6 @@ bool WaveletDecompressor::decompress() {
 	}
 
 	double* transformMemory = allocateTransformMemory();
-
-	if(!checkFileLength()) {
-		return false;
-	}
 
 	switch(m_header.BitsPerPixel) {
 	case 24:
@@ -130,7 +129,16 @@ void WaveletDecompressor::setPixels(int pixelPosition) {
 }
 
 void WaveletDecompressor::decompressRGB(double* transformMemory) {
-	m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
+	readCodeTable();
+
+	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run >::Code >::iterator it;
+	ofstream testOut("codeTableR.txt");
+	for(it = m_codeTable.begin(); it != m_codeTable.end(); ++it) {
+		testOut << it->first.value << ", " << it->first.run << " => " << it->second.code << ", " << it->second.size << endl;
+	}
+	testOut.close();
+
+	/*m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
 
 	readData(transformMemory);
 	m_pWaveletTransform->inverseTransform();
@@ -144,6 +152,6 @@ void WaveletDecompressor::decompressRGB(double* transformMemory) {
 	m_pWaveletTransform->inverseTransform();
 	setPixels(FI_RGBA_BLUE);
 
-	FreeImage_Save(FIF_BMP, m_pDib, m_sOutputFilename.c_str());
+	FreeImage_Save(FIF_BMP, m_pDib, m_sOutputFilename.c_str());*/
 }
 

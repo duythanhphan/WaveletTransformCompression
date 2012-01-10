@@ -47,7 +47,11 @@ private:
 
 template<typename T>
 bool RLE<T>::Run::operator <(const Run& right) const {
-	return (run < right.run) || (value < right.value);
+	if(run == right.run) {
+		return value < right.value;
+	} else {
+		return run < right.run;
+	}
 }
 
 template<typename T>

@@ -10,6 +10,7 @@
 
 #include <string>
 #include <fstream>
+#include <map>
 #include <FreeImage.h>
 
 #include "HaarWaveletTransform.h"
@@ -25,8 +26,8 @@ public:
 
 private:
 	bool readHeader();
+	bool readCodeTable();
 	double* allocateTransformMemory();
-	bool checkFileLength();
 
 	void setPixels(int pixelPosition);
 	inline void readData(double* transformMemory);
@@ -44,6 +45,8 @@ private:
 
 	unsigned int m_iTransformWidth;
 	unsigned int m_iTransformHeight;
+
+	std::map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run >::Code > m_codeTable;
 };
 
 void WaveletDecompressor::readData(double* transformMemory) {
