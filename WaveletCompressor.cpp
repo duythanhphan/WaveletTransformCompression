@@ -241,17 +241,20 @@ void WaveletCompressor::encode() {
 		encoder.encode(it->second.code, it->second.size);
 	}
 
-	saveHeader(codeTable);
+	saveHeader(codeTable, encoder.encodedSize());
 	m_outputFile.write((char*)encoder.getData(), encoder.encodedSize() * sizeof(unsigned int));
 }
 
-void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable) {
+void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable,
+		unsigned int dataSize) {
+
 	Header header;
 	header.ImageWidth = FreeImage_GetWidth(m_image.getDib());
 	header.ImageHeight = FreeImage_GetHeight(m_image.getDib());
 	header.BitsPerPixel = m_iBitsPerPixel;
 	header.wavletType = m_waveletType;
 	header.CodeTableSize = codeTable.size();
+	header.DataSize = dataSize;
 	m_outputFile.write((char*)&header, HEADER_SIZE);
 
 	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;
