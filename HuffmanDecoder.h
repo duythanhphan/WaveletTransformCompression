@@ -19,7 +19,8 @@ template<typename T>
 class HuffmanDecoder {
 public:
 	HuffmanDecoder(unsigned int* pEncodedBits, unsigned int encodedDataSize,
-			std::map<typename HuffmanCoding<T>::Code, T>* pCodeTable);
+			std::map<typename HuffmanCoding<T>::Code, T>* pCodeTable,
+			unsigned int itemsToDecode);
 	~HuffmanDecoder();
 
 	void decode();
@@ -38,6 +39,7 @@ private:
 
 	unsigned int* m_pEncodedBits;
 	unsigned int m_iEncodedBitsSize;
+	unsigned int m_iItemsToDecode;
 	std::map<typename HuffmanCoding<T>::Code, T >* m_pCodeTable;
 
 	std::vector<unsigned int> m_masks;
@@ -45,9 +47,11 @@ private:
 
 template<typename T>
 HuffmanDecoder<T>::HuffmanDecoder(unsigned int* pEncodedBits, unsigned int encodedDataSize,
-		std::map<typename HuffmanCoding<T>::Code, T>* pCodeTable) :
+		std::map<typename HuffmanCoding<T>::Code, T>* pCodeTable,
+		unsigned int itemsToDecode) :
 		m_iDecodedDataSize(0),
-		m_pEncodedBits(pEncodedBits), m_iEncodedBitsSize(encodedDataSize), m_pCodeTable(pCodeTable) {
+		m_pEncodedBits(pEncodedBits), m_iEncodedBitsSize(encodedDataSize),
+		m_iItemsToDecode(itemsToDecode), m_pCodeTable(pCodeTable) {
 
 	m_iDataSize = 2 * encodedDataSize;
 	//m_iDataSize += 100;
@@ -99,6 +103,8 @@ template<typename T>
 void HuffmanDecoder<T>::decode() {
 	unsigned int position = 0;
 	unsigned int index = 0;
+	unsigned int decodedItems = 0;
+	bool itemsNotDecoded = true;
 
 	typename std::map<typename HuffmanCoding<T>::Code, T >::iterator it;
 	bool symbolDecoded = false;
@@ -135,6 +141,12 @@ void HuffmanDecoder<T>::decode() {
 
 					setItem(it->second);
 					symbolDecoded = true;
+					++decodedItems;
+
+					if(decodedItems == m_iItemsToDecode) {
+						itemsNotDecoded = false;
+						break;
+					}
 				}
 
 			} else {
@@ -153,12 +165,18 @@ void HuffmanDecoder<T>::decode() {
 
 					setItem(it->second);
 					symbolDecoded = true;
+					++decodedItems;
+
+					if(decodedItems == m_iItemsToDecode) {
+						itemsNotDecoded = false;
+						break;
+					}
 				}
 			}
 
 			++it;
 		}
-	} while(symbolDecoded && (index < m_iEncodedBitsSize));
+	} while(symbolDecoded && (index < m_iEncodedBitsSize) && itemsNotDecoded);
 }
 
 #endif /* HUFFMANDECODER_H_ */
