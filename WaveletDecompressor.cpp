@@ -13,7 +13,9 @@
 
 using namespace std;
 
-WaveletDecompressor::WaveletDecompressor() : m_pWaveletTransform(0), m_pDib(0), m_iFileLength(0) { }
+WaveletDecompressor::WaveletDecompressor() :
+		m_pWaveletTransformR(0), m_pWaveletTransformG(0), m_pWaveletTransformB(0),
+		m_pDib(0), m_iFileLength(0) { }
 
 bool WaveletDecompressor::init(const char* inputFilename, const char* outputFilename) {
 	m_inputFile.open(inputFilename, ifstream::binary);
@@ -37,9 +39,17 @@ bool WaveletDecompressor::init(const char* inputFilename, const char* outputFile
 }
 
 WaveletDecompressor::~WaveletDecompressor() {
-	if(m_pWaveletTransform != 0) {
-		delete m_pWaveletTransform;
-		m_pWaveletTransform = 0;
+	if(m_pWaveletTransformR != 0) {
+		delete m_pWaveletTransformR;
+		m_pWaveletTransformR = 0;
+	}
+	if(m_pWaveletTransformG != 0) {
+		delete m_pWaveletTransformG;
+		m_pWaveletTransformG = 0;
+	}
+	if(m_pWaveletTransformB != 0) {
+		delete m_pWaveletTransformB;
+		m_pWaveletTransformB = 0;
 	}
 	if(m_pDib != 0) {
 		FreeImage_Unload(m_pDib);
@@ -57,7 +67,7 @@ bool WaveletDecompressor::readHeader() {
 bool WaveletDecompressor::readCodeTable() {
 	RLE<double>::Run run;
 	HuffmanCoding<RLE<double>::Run >::Code code;
-	typedef pair<RLE<double>::Run, HuffmanCoding<RLE<double>::Run >::Code > CodeTablePair;
+	typedef pair<HuffmanCoding<RLE<double>::Run >::Code, RLE<double>::Run > CodeTablePair;
 
 	for(unsigned int i = 0; i < m_header.CodeTableSize; ++i) {
 		m_inputFile.read((char*)&run.value, sizeof(double));
@@ -66,18 +76,18 @@ bool WaveletDecompressor::readCodeTable() {
 		m_inputFile.read((char*)&code.code, sizeof(unsigned int));
 		m_inputFile.read((char*)&code.size, sizeof(unsigned int));
 
-		m_codeTable.insert(CodeTablePair(run, code));
+		m_codeTable.insert(CodeTablePair(code, run));
 	}
 
 	return true;
 }
 
-double* WaveletDecompressor::allocateTransformMemory() {
+double* WaveletDecompressor::allocateTransformMemory(WaveletTransform* pWaveletTransform) {
 	unsigned int transformWidth = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageWidth);
 	unsigned int transformHeight = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageHeight);
 	double* transformMemory = new double[transformWidth * transformHeight];
 
-	m_pWaveletTransform->setData(transformMemory, transformWidth, transformHeight);
+	pWaveletTransform->setData(transformMemory, transformWidth, transformHeight);
 
 	return transformMemory;
 }
@@ -90,18 +100,16 @@ bool WaveletDecompressor::decompress() {
 
 	switch(m_header.wavletType) {
 	case WaveletCompressor::Haar:
-		m_pWaveletTransform = new HaarWaveletTransform();
+		m_pWaveletTransformR = new HaarWaveletTransform();
 		break;
 	default:
 		fprintf(stderr, "Unsupported wavelet.\n");
 		return false;
 	}
 
-	double* transformMemory = allocateTransformMemory();
-
 	switch(m_header.BitsPerPixel) {
 	case 24:
-		decompressRGB(transformMemory);
+		decompressRGB();
 		break;
 	default:
 		fprintf(stderr, "Unsupported bit depth.\n");
@@ -111,32 +119,27 @@ bool WaveletDecompressor::decompress() {
 	return true;
 }
 
-void WaveletDecompressor::setPixels(int pixelPosition) {
+void WaveletDecompressor::setPixels() {
 	BYTE* bits;
 	unsigned int x = 0;
 	unsigned int y = 0;
-	unsigned int BytesPerPixel = m_header.BitsPerPixel / 8;
+	const unsigned int BytesPerPixel = m_header.BitsPerPixel / 8;
 
 	for(y = 0; y < m_header.ImageHeight; ++y) {
 		bits = FreeImage_GetScanLine(m_pDib, y);
 
 		for(x = 0; x < m_header.ImageWidth; ++x) {
-			bits[pixelPosition] = (BYTE)m_pWaveletTransform->getItem(y, x);
+			bits[FI_RGBA_RED] = (BYTE)m_pWaveletTransformR->getItem(y, x);
+			bits[FI_RGBA_GREEN] = (BYTE)m_pWaveletTransformG->getItem(y, x);
+			bits[FI_RGBA_BLUE] = (BYTE)m_pWaveletTransformB->getItem(y, x);
 
 			bits += BytesPerPixel;
 		}
 	}
 }
 
-void WaveletDecompressor::decompressRGB(double* transformMemory) {
+void WaveletDecompressor::decompressRGB() {
 	readCodeTable();
-
-	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run >::Code >::iterator it;
-	ofstream testOut("codeTableR.txt");
-	for(it = m_codeTable.begin(); it != m_codeTable.end(); ++it) {
-		testOut << it->first.value << ", " << it->first.run << " => " << it->second.code << ", " << it->second.size << endl;
-	}
-	testOut.close();
 
 	/*m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
 

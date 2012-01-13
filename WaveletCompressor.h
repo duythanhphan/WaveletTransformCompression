@@ -49,7 +49,7 @@ private:
 	void setTransformMemory(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB);
 
 	void quantization(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB);
-	void compressRGB(WaveletType waveletType);
+	void compressRGB();
 
 	void countRuns(RLE<double>::Run* pData, unsigned int size, std::map<RLE<double>::Run, unsigned int >& countTable);
 	HuffmanCoding<RLE<double>::Run>::Leaf* getLeafs(

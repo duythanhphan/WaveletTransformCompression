@@ -76,7 +76,7 @@ bool WaveletCompressor::compress(WaveletType waveletType) {
 	m_iBytesPerPixel = m_iBitsPerPixel / 8;
 	switch(m_iBitsPerPixel) {
 	case 24:
-		compressRGB(waveletType);
+		compressRGB();
 		break;
 	default:
 		fprintf(stderr, "Unsupported bits per pixel size.\n");
@@ -144,14 +144,13 @@ void WaveletCompressor::quantization(double* pTransformMemoryR, double* pTransfo
 	}
 }
 
-void WaveletCompressor::compressRGB(WaveletType waveletType) {
+void WaveletCompressor::compressRGB() {
 	double* transformMemoryR = 0;
 	double* transformMemoryG = 0;
 	double* transformMemoryB = 0;
 	transformMemoryR = allocateTransformMemory(m_pWaveletTransformR);
 	transformMemoryG = allocateTransformMemory(m_pWaveletTransformG);
 	transformMemoryB = allocateTransformMemory(m_pWaveletTransformB);
-	//const unsigned int dataSize = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight() * sizeof(double);
 
 	setTransformMemory(transformMemoryR, transformMemoryG, transformMemoryB);
 	m_pWaveletTransformR->transform();

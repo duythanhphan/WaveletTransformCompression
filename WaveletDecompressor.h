@@ -27,14 +27,16 @@ public:
 private:
 	bool readHeader();
 	bool readCodeTable();
-	double* allocateTransformMemory();
+	double* allocateTransformMemory(WaveletTransform* pWaveletTransform);
 
-	void setPixels(int pixelPosition);
+	void setPixels();
 	inline void readData(double* transformMemory);
-	void decompressRGB(double* transformMemory);
+	void decompressRGB();
 
 private:
-	WaveletTransform* m_pWaveletTransform;
+	WaveletTransform* m_pWaveletTransformR;
+	WaveletTransform* m_pWaveletTransformG;
+	WaveletTransform* m_pWaveletTransformB;
 	FIBITMAP* m_pDib;
 
 	std::string m_sOutputFilename;
@@ -46,11 +48,11 @@ private:
 	unsigned int m_iTransformWidth;
 	unsigned int m_iTransformHeight;
 
-	std::map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run >::Code > m_codeTable;
+	std::map<HuffmanCoding<RLE<double>::Run >::Code, RLE<double>::Run > m_codeTable;
 };
 
 void WaveletDecompressor::readData(double* transformMemory) {
-	unsigned int size = m_pWaveletTransform->getWidth() * m_pWaveletTransform->getHeight() * sizeof(double);
+	unsigned int size = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight() * sizeof(double);
 	char* pTransformMemory = (char*)transformMemory;
 	m_inputFile.read(pTransformMemory, size);
 }
