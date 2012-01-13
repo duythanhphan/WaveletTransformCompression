@@ -150,12 +150,17 @@ HuffmanCoding<T>::~HuffmanCoding() {
 		while(!queue.empty()) {
 			node = queue.front();
 			queue.pop_front();
-			nodes.push_back(node);
+
 			if(node->left != 0) {
 				queue.push_back(node->left);
 			}
 			if(node->right != 0) {
 				queue.push_back(node->right);
+			}
+
+			if(node->left != 0 || node->right != 0) {
+				//not leaf save pointer to delete
+				nodes.push_back(node);
 			}
 		}
 
@@ -163,7 +168,8 @@ HuffmanCoding<T>::~HuffmanCoding() {
 		for(it = nodes.begin(); it != nodes.end(); ++it) {
 			delete (*it);
 		}
-		delete m_pLeafs;
+
+		delete[] m_pLeafs;
 		m_pLeafs = 0;
 		m_pRoot = 0;
 

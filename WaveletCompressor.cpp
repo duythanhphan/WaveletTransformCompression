@@ -72,7 +72,7 @@ bool WaveletCompressor::compress(WaveletType waveletType) {
 		return false;
 	}
 
-	unsigned int m_iBitsPerPixel = FreeImage_GetBPP(m_image.getDib());
+	m_iBitsPerPixel = FreeImage_GetBPP(m_image.getDib());
 	m_iBytesPerPixel = m_iBitsPerPixel / 8;
 	switch(m_iBitsPerPixel) {
 	case 24:
@@ -252,7 +252,6 @@ void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<doubl
 	header.BitsPerPixel = m_iBitsPerPixel;
 	header.wavletType = m_waveletType;
 	header.CodeTableSize = codeTable.size();
-
 	m_outputFile.write((char*)&header, HEADER_SIZE);
 
 	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;

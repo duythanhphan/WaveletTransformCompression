@@ -50,11 +50,12 @@ HuffmanDecoder<T>::HuffmanDecoder(unsigned int* pEncodedBits, unsigned int encod
 		m_pEncodedBits(pEncodedBits), m_iEncodedBitsSize(encodedDataSize), m_pCodeTable(pCodeTable) {
 
 	m_iDataSize = 2 * encodedDataSize;
+	m_iDataSize += 100;
 	m_pDecodedData = (T*)malloc(m_iDataSize * sizeof(T));
 
 	m_masks.push_back(0);
 	unsigned int mask = 0;
-	for(unsigned int i = 0; i < sizeof(unsigned int); ++i) {
+	for(unsigned int i = 0; i < UnsignedInteger::NUMBER_OF_BITS; ++i) {
 		UnsignedInteger::setBitFromLeft(&mask, i);
 		m_masks.push_back(mask);
 	}
@@ -70,7 +71,7 @@ HuffmanDecoder<T>::~HuffmanDecoder() {
 
 template<typename T>
 void HuffmanDecoder<T>::allocateMoreMemory() {
-	m_iDecodedDataSize += m_iDataSize * 0.5;
+	m_iDataSize += (m_iDataSize * 0.5) + 1;
 	m_pDecodedData = (T*)realloc(m_pDecodedData, m_iDataSize);
 }
 
@@ -109,6 +110,7 @@ void HuffmanDecoder<T>::decode() {
 	do {
 		it = m_pCodeTable->begin();
 		symbolDecoded = false;
+
 		while(!symbolDecoded && it != m_pCodeTable->end()) {
 
 			if(position + it->first.size > 31) {
@@ -156,7 +158,7 @@ void HuffmanDecoder<T>::decode() {
 
 			++it;
 		}
-	} while(symbolDecoded);
+	} while(symbolDecoded && (index < m_iEncodedBitsSize));
 }
 
 #endif /* HUFFMANDECODER_H_ */
