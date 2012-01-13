@@ -33,6 +33,8 @@ private:
 	inline void readData(double* transformMemory);
 	void decompressRGB();
 
+	void decode();
+
 private:
 	WaveletTransform* m_pWaveletTransformR;
 	WaveletTransform* m_pWaveletTransformG;

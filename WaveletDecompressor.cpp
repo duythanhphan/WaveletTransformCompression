@@ -10,6 +10,7 @@
 
 #include "WaveletDecompressor.h"
 #include "UnsignedInteger.h"
+#include "HuffmanDecoder.h"
 
 using namespace std;
 
@@ -138,11 +139,25 @@ void WaveletDecompressor::setPixels() {
 	}
 }
 
+void WaveletDecompressor::decode() {
+	unsigned int* encodedData = new unsigned int[m_header.DataSize];
+	m_inputFile.read((char*)encodedData, m_header.DataSize * sizeof(unsigned int));
+
+	HuffmanDecoder<RLE<double>::Run > huffmanDecoder(
+			encodedData, m_header.DataSize, &m_codeTable, m_header.EncodedItems);
+	huffmanDecoder.decode();
+
+	delete[] encodedData;
+}
+
 void WaveletDecompressor::decompressRGB() {
 	readCodeTable();
 
-	/*m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
+	decode();
 
+	//m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
+
+	/*
 	readData(transformMemory);
 	m_pWaveletTransform->inverseTransform();
 	setPixels(FI_RGBA_RED);
@@ -154,7 +169,8 @@ void WaveletDecompressor::decompressRGB() {
 	readData(transformMemory);
 	m_pWaveletTransform->inverseTransform();
 	setPixels(FI_RGBA_BLUE);
+	*/
 
-	FreeImage_Save(FIF_BMP, m_pDib, m_sOutputFilename.c_str());*/
+	//FreeImage_Save(FIF_BMP, m_pDib, m_sOutputFilename.c_str());
 }
 

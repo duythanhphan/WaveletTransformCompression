@@ -240,12 +240,13 @@ void WaveletCompressor::encode() {
 		encoder.encode(it->second.code, it->second.size);
 	}
 
-	saveHeader(codeTable, encoder.encodedSize());
+	unsigned int encodedItems = rleR.getEncodedDataSize() + rleG.getEncodedDataSize() + rleB.getEncodedDataSize();
+	saveHeader(codeTable, encoder.encodedSize(), encodedItems);
 	m_outputFile.write((char*)encoder.getData(), encoder.encodedSize() * sizeof(unsigned int));
 }
 
 void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable,
-		unsigned int dataSize) {
+		unsigned int dataSize, unsigned int encodedItems) {
 
 	Header header;
 	header.ImageWidth = FreeImage_GetWidth(m_image.getDib());
@@ -254,6 +255,7 @@ void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<doubl
 	header.wavletType = m_waveletType;
 	header.CodeTableSize = codeTable.size();
 	header.DataSize = dataSize;
+	header.EncodedItems = encodedItems;
 	m_outputFile.write((char*)&header, HEADER_SIZE);
 
 	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;

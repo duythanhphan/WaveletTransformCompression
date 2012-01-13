@@ -30,6 +30,7 @@ public:
 		WaveletType wavletType;
 		unsigned int CodeTableSize;
 		unsigned int DataSize;
+		unsigned int EncodedItems;
 	};
 
 	static const unsigned int HEADER_SIZE;
@@ -43,7 +44,7 @@ public:
 
 private:
 	void saveHeader(std::map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable,
-			unsigned int dataSize);
+			unsigned int dataSize, unsigned int encodedItems);
 
 	double* allocateTransformMemory(WaveletTransform* pWaveletTransform);
 	void setTransformMemory(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB);
