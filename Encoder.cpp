@@ -65,6 +65,7 @@ void Encoder::encode(unsigned int code, unsigned int numberOfBits) {
 	} else if(lastBitSetPosition == m_iMaxBitPosition) {
 
 		++m_iCurrentIndex;
+		m_iCurrentBitPosition = 0;
 		if(m_iCurrentIndex >= m_iCurrentSize) {
 			allocateAdditionalMemory();
 		}

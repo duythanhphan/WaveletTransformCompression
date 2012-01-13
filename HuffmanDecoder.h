@@ -50,7 +50,7 @@ HuffmanDecoder<T>::HuffmanDecoder(unsigned int* pEncodedBits, unsigned int encod
 		m_pEncodedBits(pEncodedBits), m_iEncodedBitsSize(encodedDataSize), m_pCodeTable(pCodeTable) {
 
 	m_iDataSize = 2 * encodedDataSize;
-	m_iDataSize += 100;
+	//m_iDataSize += 100;
 	m_pDecodedData = (T*)malloc(m_iDataSize * sizeof(T));
 
 	m_masks.push_back(0);
@@ -72,7 +72,7 @@ HuffmanDecoder<T>::~HuffmanDecoder() {
 template<typename T>
 void HuffmanDecoder<T>::allocateMoreMemory() {
 	m_iDataSize += (m_iDataSize * 0.5) + 1;
-	m_pDecodedData = (T*)realloc(m_pDecodedData, m_iDataSize);
+	m_pDecodedData = (T*)realloc(m_pDecodedData, m_iDataSize * sizeof(T));
 }
 
 template<typename T>
@@ -146,7 +146,7 @@ void HuffmanDecoder<T>::decode() {
 					m_pEncodedBits[index] <<= it->first.size;
 					position += it->first.size;
 
-					if(position == 31) {
+					if(position == 32) {
 						position = 0;
 						++index;
 					}
