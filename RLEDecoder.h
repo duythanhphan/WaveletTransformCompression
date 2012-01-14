@@ -8,7 +8,7 @@
 #ifndef RLEDECODER_H_
 #define RLEDECODER_H_
 
-#include <RLE.h>
+#include "RLE.h"
 
 template<typename T>
 class RLEDecoder {
