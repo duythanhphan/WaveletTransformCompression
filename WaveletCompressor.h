@@ -20,8 +20,8 @@
 class WaveletCompressor {
 public:
 	enum WaveletType {
-		Haar,
-		NotSet
+		NotSet = 0,
+		Haar
 	};
 
 	struct Header {

@@ -69,7 +69,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.mingw.lib.release.293045467." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.mingw.lib.release.1928975159" name="MinGW GCC" superClass="cdt.managedbuild.toolchain.gnu.mingw.lib.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.mingw.lib.release.132618817" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.mingw.lib.release"/>
-							<builder buildPath="${workspace_loc:/WaveletTransformCompression/Release}" id="cdt.managedbuild.tool.gnu.builder.mingw.base.782196131" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" superClass="cdt.managedbuild.tool.gnu.builder.mingw.base"/>
+							<builder buildPath="${workspace_loc:/WaveletTransformCompression/Release}" id="cdt.managedbuild.tool.gnu.builder.mingw.base.782196131" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="2" superClass="cdt.managedbuild.tool.gnu.builder.mingw.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.mingw.lib.release.2009328214" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.mingw.lib.release">
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.209694349" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -77,6 +77,9 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.lib.release.1494084448" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.lib.release">
 								<option id="gnu.cpp.compiler.mingw.lib.release.option.optimization.level.185219479" name="Optimization Level" superClass="gnu.cpp.compiler.mingw.lib.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.mingw.lib.release.option.debugging.level.1059602129" name="Debug Level" superClass="gnu.cpp.compiler.mingw.lib.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.include.paths.1044036375" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\External_Libraries\FreeImage&quot;"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.694016291" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.lib.release.952527374" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.lib.release">

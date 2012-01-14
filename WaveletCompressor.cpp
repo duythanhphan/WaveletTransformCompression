@@ -145,6 +145,8 @@ void WaveletCompressor::quantization(double* pTransformMemoryR, double* pTransfo
 }
 
 void WaveletCompressor::compressRGB() {
+	printf("Transform...\n");
+
 	double* transformMemoryR = 0;
 	double* transformMemoryG = 0;
 	double* transformMemoryB = 0;
@@ -157,13 +159,10 @@ void WaveletCompressor::compressRGB() {
 	m_pWaveletTransformG->transform();
 	m_pWaveletTransformB->transform();
 
+	printf("Quantization...\n");
 	quantization(transformMemoryR, transformMemoryG, transformMemoryB);
 
 	encode();
-
-//	m_outputFile.write((char*)transformMemoryR, dataSize);
-//	m_outputFile.write((char*)transformMemoryG, dataSize);
-//	m_outputFile.write((char*)transformMemoryB, dataSize);
 }
 
 void WaveletCompressor::countRuns(RLE<double>::Run* pData, unsigned int size,
@@ -204,6 +203,8 @@ HuffmanCoding<RLE<double>::Run >::Leaf* WaveletCompressor::getLeafs(
 }
 
 void WaveletCompressor::encode() {
+	printf("RLE encode...\n");
+
 	const unsigned int size = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight();
 	RLE<double> rleR(m_pWaveletTransformR->getTransfomrMemory(), size);
 	rleR.encode();
@@ -212,6 +213,7 @@ void WaveletCompressor::encode() {
 	RLE<double> rleB(m_pWaveletTransformB->getTransfomrMemory(), size);
 	rleB.encode();
 
+	printf("Huffman Coding...\n");
 
 	unsigned int leafsSize = 0;
 	HuffmanCoding<RLE<double>::Run>::Leaf* pLeafs = getLeafs(rleR, rleG, rleB, &leafsSize);
@@ -241,6 +243,8 @@ void WaveletCompressor::encode() {
 		it = codeTable.find(pRun[i]);
 		encoder.encode(it->second.code, it->second.size);
 	}
+
+	printf("Saving file...\n");
 
 	unsigned int encodedItems = rleR.getEncodedDataSize() + rleG.getEncodedDataSize() + rleB.getEncodedDataSize();
 	saveHeader(codeTable, encoder.encodedSize(), encodedItems);

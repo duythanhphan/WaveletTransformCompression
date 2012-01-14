@@ -204,7 +204,7 @@ void WaveletDecompressor::decompressRGB() {
 	m_pWaveletTransformG->inverseTransform();
 	m_pWaveletTransformB->inverseTransform();
 
-	printf("Setting image...\n");
+	printf("Setting image pixels...\n");
 
 	m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
 	setPixels();
