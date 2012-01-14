@@ -26,6 +26,7 @@ public:
 
 private:
 	bool readHeader();
+	bool checkFileLength();
 	bool readCodeTable();
 	double* allocateTransformMemory(WaveletTransform* pWaveletTransform);
 

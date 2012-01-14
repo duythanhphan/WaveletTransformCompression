@@ -66,6 +66,53 @@ bool WaveletDecompressor::readHeader() {
 	return true;
 }
 
+bool WaveletDecompressor::checkFileLength() {
+	unsigned int codeTableSize = m_header.CodeTableSize *
+			( sizeof(double) + (3 * sizeof(unsigned int)) );
+	unsigned int dataSize = m_header.DataSize * sizeof(unsigned int);
+	unsigned int totalSize = WaveletCompressor::HEADER_SIZE + codeTableSize + dataSize;
+
+	if(totalSize != m_iFileLength) {
+		return false;
+	}
+
+	return true;
+}
+
+bool WaveletDecompressor::decompress() {
+	if(!readHeader()) {
+		fprintf(stderr, "Error reading compressed image file header.\n");
+		return false;
+	}
+
+	if(!checkFileLength()) {
+		fprintf(stderr, "Error, file size.\n");
+		return false;
+	}
+
+	switch(m_header.wavletType) {
+	case WaveletCompressor::Haar:
+		m_pWaveletTransformR = new HaarWaveletTransform();
+		m_pWaveletTransformG = new HaarWaveletTransform();
+		m_pWaveletTransformB = new HaarWaveletTransform();
+		break;
+	default:
+		fprintf(stderr, "Unsupported wavelet.\n");
+		return false;
+	}
+
+	switch(m_header.BitsPerPixel) {
+	case 24:
+		decompressRGB();
+		break;
+	default:
+		fprintf(stderr, "Unsupported bit depth.\n");
+		return false;
+	}
+
+	return true;
+}
+
 bool WaveletDecompressor::readCodeTable() {
 	RLE<double>::Run run;
 	HuffmanCoding<RLE<double>::Run >::Code code;
@@ -94,33 +141,6 @@ double* WaveletDecompressor::allocateTransformMemory(WaveletTransform* pWaveletT
 	return transformMemory;
 }
 
-bool WaveletDecompressor::decompress() {
-	if(!readHeader()) {
-		fprintf(stderr, "Error reading compressed image file header.\n");
-		return false;
-	}
-
-	switch(m_header.wavletType) {
-	case WaveletCompressor::Haar:
-		m_pWaveletTransformR = new HaarWaveletTransform();
-		break;
-	default:
-		fprintf(stderr, "Unsupported wavelet.\n");
-		return false;
-	}
-
-	switch(m_header.BitsPerPixel) {
-	case 24:
-		decompressRGB();
-		break;
-	default:
-		fprintf(stderr, "Unsupported bit depth.\n");
-		return false;
-	}
-
-	return true;
-}
-
 void WaveletDecompressor::setPixels() {
 	BYTE* bits;
 	unsigned int x = 0;
@@ -144,9 +164,13 @@ void WaveletDecompressor::decode() {
 	unsigned int* encodedData = new unsigned int[m_header.DataSize];
 	m_inputFile.read((char*)encodedData, m_header.DataSize * sizeof(unsigned int));
 
+	printf("Decoding Huffman codes...\n");
+
 	HuffmanDecoder<RLE<double>::Run > huffmanDecoder(
 			encodedData, m_header.DataSize, &m_codeTable, m_header.EncodedItems);
 	huffmanDecoder.decode();
+
+	printf("Decoding RLE...\n");
 
 	RLE<double>::Run* pRuns = huffmanDecoder.getDecodedData();
 
@@ -162,6 +186,10 @@ void WaveletDecompressor::decode() {
 	rleDecoder.decode(pTransformG, transformSize);
 	rleDecoder.decode(pTransformB, transformSize);
 
+	m_pWaveletTransformR->setData(pTransformR, transformWidth, transformHeight);
+	m_pWaveletTransformG->setData(pTransformG, transformWidth, transformHeight);
+	m_pWaveletTransformB->setData(pTransformB, transformWidth, transformHeight);
+
 	delete[] encodedData;
 }
 
@@ -170,22 +198,16 @@ void WaveletDecompressor::decompressRGB() {
 
 	decode();
 
-	//m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
+	printf("Inverse Transform...\n");
 
-	/*
-	readData(transformMemory);
-	m_pWaveletTransform->inverseTransform();
-	setPixels(FI_RGBA_RED);
+	m_pWaveletTransformR->inverseTransform();
+	m_pWaveletTransformG->inverseTransform();
+	m_pWaveletTransformB->inverseTransform();
 
-	readData(transformMemory);
-	m_pWaveletTransform->inverseTransform();
-	setPixels(FI_RGBA_GREEN);
+	printf("Setting image...\n");
 
-	readData(transformMemory);
-	m_pWaveletTransform->inverseTransform();
-	setPixels(FI_RGBA_BLUE);
-	*/
-
-	//FreeImage_Save(FIF_BMP, m_pDib, m_sOutputFilename.c_str());
+	m_pDib = FreeImage_Allocate(m_header.ImageWidth, m_header.ImageHeight, 24);
+	setPixels();
+	FreeImage_Save(FIF_BMP, m_pDib, m_sOutputFilename.c_str());
 }
 

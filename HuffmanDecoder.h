@@ -117,7 +117,7 @@ void HuffmanDecoder<T>::decode() {
 		it = m_pCodeTable->begin();
 		symbolDecoded = false;
 
-		while(!symbolDecoded && it != m_pCodeTable->end()) {
+		while(!symbolDecoded && (it != m_pCodeTable->end())) {
 
 			if(position + it->first.size > 31) {
 				//data stored on two integers
@@ -176,6 +176,7 @@ void HuffmanDecoder<T>::decode() {
 
 			++it;
 		}
+
 	} while(symbolDecoded && (index < m_iEncodedBitsSize) && itemsNotDecoded);
 }
 

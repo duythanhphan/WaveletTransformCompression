@@ -42,11 +42,11 @@ WaveletCompressor::~WaveletCompressor() {
 		delete m_pWaveletTransformR;
 		m_pWaveletTransformR = 0;
 	}
-	if(m_pWaveletTransformR != 0) {
+	if(m_pWaveletTransformG != 0) {
 		delete m_pWaveletTransformG;
 		m_pWaveletTransformG = 0;
 	}
-	if(m_pWaveletTransformR != 0) {
+	if(m_pWaveletTransformB != 0) {
 		delete m_pWaveletTransformB;
 		m_pWaveletTransformB = 0;
 	}
@@ -166,7 +166,9 @@ void WaveletCompressor::compressRGB() {
 //	m_outputFile.write((char*)transformMemoryB, dataSize);
 }
 
-void WaveletCompressor::countRuns(RLE<double>::Run* pData, unsigned int size, map<RLE<double>::Run, unsigned int >& countTable) {
+void WaveletCompressor::countRuns(RLE<double>::Run* pData, unsigned int size,
+		map<RLE<double>::Run, unsigned int >& countTable) {
+
 	map<RLE<double>::Run, unsigned int>::iterator it;
 
 	for(unsigned int i = 0; i < size; ++i) {
@@ -207,7 +209,7 @@ void WaveletCompressor::encode() {
 	rleR.encode();
 	RLE<double> rleG(m_pWaveletTransformG->getTransfomrMemory(), size);
 	rleG.encode();
-	RLE<double> rleB(m_pWaveletTransformR->getTransfomrMemory(), size);
+	RLE<double> rleB(m_pWaveletTransformB->getTransfomrMemory(), size);
 	rleB.encode();
 
 
@@ -259,11 +261,12 @@ void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<doubl
 	m_outputFile.write((char*)&header, HEADER_SIZE);
 
 	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;
-	const unsigned int runSize = sizeof(RLE<double>::Run);
-	const unsigned int codeSize = sizeof(HuffmanCoding<RLE<double>::Run>::Code);
 
 	for(it = codeTable.begin(); it != codeTable.end(); ++it) {
-		m_outputFile.write((char*)&it->first, runSize);
-		m_outputFile.write((char*)&it->second, codeSize);
+		m_outputFile.write((char*)&it->first.value, sizeof(double));
+		m_outputFile.write((char*)&it->first.run, sizeof(unsigned int));
+
+		m_outputFile.write((char*)&it->second.code, sizeof(unsigned int));
+		m_outputFile.write((char*)&it->second.size, sizeof(unsigned int));
 	}
 }
