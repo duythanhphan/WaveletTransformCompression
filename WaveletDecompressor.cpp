@@ -11,6 +11,7 @@
 #include "WaveletDecompressor.h"
 #include "UnsignedInteger.h"
 #include "HuffmanDecoder.h"
+#include "RLEDecoder.h"
 
 using namespace std;
 
@@ -146,6 +147,20 @@ void WaveletDecompressor::decode() {
 	HuffmanDecoder<RLE<double>::Run > huffmanDecoder(
 			encodedData, m_header.DataSize, &m_codeTable, m_header.EncodedItems);
 	huffmanDecoder.decode();
+
+	RLE<double>::Run* pRuns = huffmanDecoder.getDecodedData();
+
+	unsigned int transformWidth = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageWidth);
+	unsigned int transformHeight = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageHeight);
+	unsigned int transformSize =  transformWidth * transformHeight;
+	double* pTransformR = new double[transformSize];
+	double* pTransformG = new double[transformSize];
+	double* pTransformB = new double[transformSize];
+
+	RLEDecoder<double> rleDecoder(pRuns, huffmanDecoder.getDecodedDataSize());
+	rleDecoder.decode(pTransformR, transformSize);
+	rleDecoder.decode(pTransformG, transformSize);
+	rleDecoder.decode(pTransformB, transformSize);
 
 	delete[] encodedData;
 }
