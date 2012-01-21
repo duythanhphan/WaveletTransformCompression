@@ -38,9 +38,9 @@ private:
 	void inverseQuantization();
 
 private:
-	WaveletTransform* m_pWaveletTransformR;
-	WaveletTransform* m_pWaveletTransformG;
-	WaveletTransform* m_pWaveletTransformB;
+	WaveletTransform* m_pWaveletTransformY;
+	WaveletTransform* m_pWaveletTransformU;
+	WaveletTransform* m_pWaveletTransformV;
 	FIBITMAP* m_pDib;
 
 	std::string m_sOutputFilename;
@@ -56,7 +56,7 @@ private:
 };
 
 void WaveletDecompressor::readData(double* transformMemory) {
-	unsigned int size = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight() * sizeof(double);
+	unsigned int size = m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight() * sizeof(double);
 	char* pTransformMemory = (char*)transformMemory;
 	m_inputFile.read(pTransformMemory, size);
 }

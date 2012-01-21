@@ -31,6 +31,7 @@ public:
 		unsigned int CodeTableSize;
 		unsigned int DataSize;
 		unsigned int EncodedItems;
+		unsigned int QuantizationIntervals[3];
 	};
 
 	static const unsigned int HEADER_SIZE;
@@ -41,6 +42,8 @@ public:
 	~WaveletCompressor();
 
 	bool compress(WaveletType waveletType);
+
+	inline void setQuantizationIntervalsY(unsigned int Y, unsigned int U, unsigned int V);
 
 private:
 	void saveHeader(std::map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable,
@@ -58,9 +61,9 @@ private:
 	void encode();
 
 private:
-	WaveletTransform* m_pWaveletTransformR;
-	WaveletTransform* m_pWaveletTransformG;
-	WaveletTransform* m_pWaveletTransformB;
+	WaveletTransform* m_pWaveletTransformY;
+	WaveletTransform* m_pWaveletTransformU;
+	WaveletTransform* m_pWaveletTransformV;
 	Image m_image;
 	std::ofstream m_outputFile;
 	std::map<double, HuffmanCoding<double>::Code > m_codeTable;
@@ -71,6 +74,16 @@ private:
 
 	unsigned int m_iBitsPerPixel;
 	WaveletType m_waveletType;
+
+	unsigned int m_iQuantizationIntervalsY;
+	unsigned int m_iQuantizationIntervalsU;
+	unsigned int m_iQuantizationIntervalsV;
 };
+
+void WaveletCompressor::setQuantizationIntervalsY(unsigned int Y, unsigned int U, unsigned int V) {
+	m_iQuantizationIntervalsY = Y;
+	m_iQuantizationIntervalsU = U;
+	m_iQuantizationIntervalsV = V;
+}
 
 #endif /* WAVLETCOMPRESSOR_H_ */

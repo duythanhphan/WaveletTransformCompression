@@ -17,7 +17,7 @@
 using namespace std;
 
 WaveletDecompressor::WaveletDecompressor() :
-		m_pWaveletTransformR(0), m_pWaveletTransformG(0), m_pWaveletTransformB(0),
+		m_pWaveletTransformY(0), m_pWaveletTransformU(0), m_pWaveletTransformV(0),
 		m_pDib(0), m_iFileLength(0) { }
 
 bool WaveletDecompressor::init(const char* inputFilename, const char* outputFilename) {
@@ -42,17 +42,17 @@ bool WaveletDecompressor::init(const char* inputFilename, const char* outputFile
 }
 
 WaveletDecompressor::~WaveletDecompressor() {
-	if(m_pWaveletTransformR != 0) {
-		delete m_pWaveletTransformR;
-		m_pWaveletTransformR = 0;
+	if(m_pWaveletTransformY != 0) {
+		delete m_pWaveletTransformY;
+		m_pWaveletTransformY = 0;
 	}
-	if(m_pWaveletTransformG != 0) {
-		delete m_pWaveletTransformG;
-		m_pWaveletTransformG = 0;
+	if(m_pWaveletTransformU != 0) {
+		delete m_pWaveletTransformU;
+		m_pWaveletTransformU = 0;
 	}
-	if(m_pWaveletTransformB != 0) {
-		delete m_pWaveletTransformB;
-		m_pWaveletTransformB = 0;
+	if(m_pWaveletTransformV != 0) {
+		delete m_pWaveletTransformV;
+		m_pWaveletTransformV = 0;
 	}
 	if(m_pDib != 0) {
 		FreeImage_Unload(m_pDib);
@@ -93,9 +93,9 @@ bool WaveletDecompressor::decompress() {
 
 	switch(m_header.wavletType) {
 	case WaveletCompressor::Haar:
-		m_pWaveletTransformR = new HaarWaveletTransform();
-		m_pWaveletTransformG = new HaarWaveletTransform();
-		m_pWaveletTransformB = new HaarWaveletTransform();
+		m_pWaveletTransformY = new HaarWaveletTransform();
+		m_pWaveletTransformU = new HaarWaveletTransform();
+		m_pWaveletTransformV = new HaarWaveletTransform();
 		break;
 	default:
 		fprintf(stderr, "Unsupported wavelet.\n");
@@ -147,14 +147,25 @@ void WaveletDecompressor::setPixels() {
 	unsigned int x = 0;
 	unsigned int y = 0;
 	const unsigned int BytesPerPixel = m_header.BitsPerPixel / 8;
+	double Y = 0.0, U = 0.0, V = 0.0;
+	double R = 0.0, G = 0.0, B = 0.0;
 
 	for(y = 0; y < m_header.ImageHeight; ++y) {
 		bits = FreeImage_GetScanLine(m_pDib, y);
 
 		for(x = 0; x < m_header.ImageWidth; ++x) {
-			bits[FI_RGBA_RED] = (BYTE)m_pWaveletTransformR->getItem(y, x);
-			bits[FI_RGBA_GREEN] = (BYTE)m_pWaveletTransformG->getItem(y, x);
-			bits[FI_RGBA_BLUE] = (BYTE)m_pWaveletTransformB->getItem(y, x);
+
+			Y = m_pWaveletTransformY->getItem(y, x);
+			U = m_pWaveletTransformU->getItem(y, x);
+			V = m_pWaveletTransformV->getItem(y, x);
+
+			R = Y + (V / 0.877);
+			B = Y + (U / 0.492);
+			G = (Y - 0.299 * R - 0.114 * B) / 0.587;
+
+			bits[FI_RGBA_RED] = (BYTE)R;
+			bits[FI_RGBA_GREEN] = (BYTE)G;
+			bits[FI_RGBA_BLUE] = (BYTE)B;
 
 			bits += BytesPerPixel;
 		}
@@ -178,33 +189,35 @@ void WaveletDecompressor::decode() {
 	unsigned int transformWidth = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageWidth);
 	unsigned int transformHeight = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageHeight);
 	unsigned int transformSize =  transformWidth * transformHeight;
-	double* pTransformR = new double[transformSize];
-	double* pTransformG = new double[transformSize];
-	double* pTransformB = new double[transformSize];
+	double* pTransformY = new double[transformSize];
+	double* pTransformU = new double[transformSize];
+	double* pTransformV = new double[transformSize];
 
 	RLEDecoder<double> rleDecoder(pRuns, huffmanDecoder.getDecodedDataSize());
-	rleDecoder.decode(pTransformR, transformSize);
-	rleDecoder.decode(pTransformG, transformSize);
-	rleDecoder.decode(pTransformB, transformSize);
+	rleDecoder.decode(pTransformY, transformSize);
+	rleDecoder.decode(pTransformU, transformSize);
+	rleDecoder.decode(pTransformV, transformSize);
 
-	m_pWaveletTransformR->setData(pTransformR, transformWidth, transformHeight);
-	m_pWaveletTransformG->setData(pTransformG, transformWidth, transformHeight);
-	m_pWaveletTransformB->setData(pTransformB, transformWidth, transformHeight);
+	m_pWaveletTransformY->setData(pTransformY, transformWidth, transformHeight);
+	m_pWaveletTransformU->setData(pTransformU, transformWidth, transformHeight);
+	m_pWaveletTransformV->setData(pTransformV, transformWidth, transformHeight);
 
 	delete[] encodedData;
 }
 
 void WaveletDecompressor::inverseQuantization() {
-	double* pTransformR = m_pWaveletTransformR->getTransformMemory();
-	double* pTransformG = m_pWaveletTransformG->getTransformMemory();
-	double* pTransformB = m_pWaveletTransformB->getTransformMemory();
+	double* pTransformY = m_pWaveletTransformY->getTransformMemory();
+	double* pTransformU = m_pWaveletTransformU->getTransformMemory();
+	double* pTransformV = m_pWaveletTransformV->getTransformMemory();
 
-	Quantizer quantizer(-127.5, 255.0, 256);
+	Quantizer quantizerY(-127.5, 255.0, m_header.QuantizationIntervals[0]);
+	Quantizer quantizerU(-111.15756, 111.15756, m_header.QuantizationIntervals[1]);
+	Quantizer quantizerV(-156.768135, 156.768135, m_header.QuantizationIntervals[2]);
 
-	for(unsigned int i = 0; i < m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight(); ++i) {
-		pTransformR[i] = quantizer.inverseQuantize(pTransformR[i]);
-		pTransformG[i] = quantizer.inverseQuantize(pTransformG[i]);
-		pTransformB[i] = quantizer.inverseQuantize(pTransformB[i]);
+	for(unsigned int i = 0; i < m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight(); ++i) {
+		pTransformY[i] = quantizerY.inverseQuantize(pTransformY[i]);
+		pTransformU[i] = quantizerU.inverseQuantize(pTransformU[i]);
+		pTransformV[i] = quantizerV.inverseQuantize(pTransformV[i]);
 	}
 }
 
@@ -218,9 +231,9 @@ void WaveletDecompressor::decompressRGB() {
 
 	printf("Inverse Transform...\n");
 
-	m_pWaveletTransformR->inverseTransform();
-	m_pWaveletTransformG->inverseTransform();
-	m_pWaveletTransformB->inverseTransform();
+	m_pWaveletTransformY->inverseTransform();
+	m_pWaveletTransformU->inverseTransform();
+	m_pWaveletTransformV->inverseTransform();
 
 	printf("Setting image pixels...\n");
 

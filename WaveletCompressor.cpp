@@ -17,10 +17,13 @@ using namespace std;
 const unsigned int WaveletCompressor::HEADER_SIZE = sizeof(Header);
 
 WaveletCompressor::WaveletCompressor() :
-		m_pWaveletTransformR(0), m_pWaveletTransformG(0), m_pWaveletTransformB(0),
+		m_pWaveletTransformY(0), m_pWaveletTransformU(0), m_pWaveletTransformV(0),
 		m_iImageWidth(0), m_iImageHeight(0),
 		m_iBytesPerPixel(0), m_iBitsPerPixel(0),
-		m_waveletType(NotSet) { }
+		m_waveletType(NotSet),
+		m_iQuantizationIntervalsY(8192),
+		m_iQuantizationIntervalsU(8192),
+		m_iQuantizationIntervalsV(8192){ }
 
 bool WaveletCompressor::init(const char* inputFilename, const char* outputFilename) {
 	m_outputFile.open(outputFilename, ofstream::binary);
@@ -38,17 +41,17 @@ bool WaveletCompressor::init(const char* inputFilename, const char* outputFilena
 }
 
 WaveletCompressor::~WaveletCompressor() {
-	if(m_pWaveletTransformR != 0) {
-		delete m_pWaveletTransformR;
-		m_pWaveletTransformR = 0;
+	if(m_pWaveletTransformY != 0) {
+		delete m_pWaveletTransformY;
+		m_pWaveletTransformY = 0;
 	}
-	if(m_pWaveletTransformG != 0) {
-		delete m_pWaveletTransformG;
-		m_pWaveletTransformG = 0;
+	if(m_pWaveletTransformU != 0) {
+		delete m_pWaveletTransformU;
+		m_pWaveletTransformU = 0;
 	}
-	if(m_pWaveletTransformB != 0) {
-		delete m_pWaveletTransformB;
-		m_pWaveletTransformB = 0;
+	if(m_pWaveletTransformV != 0) {
+		delete m_pWaveletTransformV;
+		m_pWaveletTransformV = 0;
 	}
 }
 
@@ -62,9 +65,9 @@ bool WaveletCompressor::compress(WaveletType waveletType) {
 
 	switch(waveletType) {
 	case Haar:
-		m_pWaveletTransformR = new HaarWaveletTransform();
-		m_pWaveletTransformG = new HaarWaveletTransform();
-		m_pWaveletTransformB = new HaarWaveletTransform();
+		m_pWaveletTransformY = new HaarWaveletTransform();
+		m_pWaveletTransformU = new HaarWaveletTransform();
+		m_pWaveletTransformV = new HaarWaveletTransform();
 		m_waveletType = Haar;
 		break;
 	default:
@@ -101,99 +104,82 @@ double* WaveletCompressor::allocateTransformMemory(WaveletTransform* pWaveletTra
 }
 
 void WaveletCompressor::setTransformMemory(
-		double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB) {
+		double* pTransformMemoryY, double* pTransformMemoryU, double* pTransformMemoryV) {
 	BYTE* bits = 0;
 	unsigned int x = 0;
 	unsigned int y = 0;
 	unsigned int i = 0;
-	const size_t bytesToFill = (m_pWaveletTransformR->getWidth() - m_iImageWidth) * sizeof(double);
+	const size_t bytesToFill = (m_pWaveletTransformY->getWidth() - m_iImageWidth) * sizeof(double);
+	double R = 0.0, G = 0.0, B = 0.0;
 
 	for(y = 0; y < m_iImageHeight; ++y) {
 		bits = FreeImage_GetScanLine(m_image.getDib(), y);
 
 		for(x = 0; x < m_iImageWidth; ++x) {
-			i = (y * m_pWaveletTransformR->getWidth()) + x;
-			pTransformMemoryR[i] = (double)bits[FI_RGBA_RED];
-			pTransformMemoryG[i] = (double)bits[FI_RGBA_GREEN];
-			pTransformMemoryB[i] = (double)bits[FI_RGBA_BLUE];
+			i = (y * m_pWaveletTransformY->getWidth()) + x;
+
+			R = (double)bits[FI_RGBA_RED];
+			G = (double)bits[FI_RGBA_GREEN];
+			B = (double)bits[FI_RGBA_BLUE];
+
+			pTransformMemoryY[i] = 0.299 * R + 0.587 * G + 0.114 * B; //Y
+			pTransformMemoryU[i] = 0.492 * (B - pTransformMemoryY[i]); //U
+			pTransformMemoryV[i] = 0.877 * (R - pTransformMemoryY[i]); //V
 
 			bits += m_iBytesPerPixel;
 		}
 
-		i = (y * m_pWaveletTransformR->getWidth()) + m_iImageWidth;
-		memset(&pTransformMemoryR[i], 0, bytesToFill);
-		memset(&pTransformMemoryG[i], 0, bytesToFill);
-		memset(&pTransformMemoryB[i], 0, bytesToFill);
+		i = (y * m_pWaveletTransformY->getWidth()) + m_iImageWidth;
+		memset(&pTransformMemoryY[i], 0, bytesToFill);
+		memset(&pTransformMemoryU[i], 0, bytesToFill);
+		memset(&pTransformMemoryV[i], 0, bytesToFill);
 	}
 
-	const size_t bytesInTransformRow = m_pWaveletTransformR->getWidth() * sizeof(double);
-	for(y = m_iImageHeight; y < m_pWaveletTransformR->getHeight(); ++y) {
-		i = y * m_pWaveletTransformR->getWidth();
-		memset(&pTransformMemoryR[i], 0, bytesInTransformRow);
-		memset(&pTransformMemoryG[i], 0, bytesInTransformRow);
-		memset(&pTransformMemoryB[i], 0, bytesInTransformRow);
+	const size_t bytesInTransformRow = m_pWaveletTransformY->getWidth() * sizeof(double);
+	for(y = m_iImageHeight; y < m_pWaveletTransformY->getHeight(); ++y) {
+		i = y * m_pWaveletTransformY->getWidth();
+		memset(&pTransformMemoryY[i], 0, bytesInTransformRow);
+		memset(&pTransformMemoryU[i], 0, bytesInTransformRow);
+		memset(&pTransformMemoryV[i], 0, bytesInTransformRow);
 	}
 }
 
-void WaveletCompressor::quantization(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB) {
+void WaveletCompressor::quantization(double* pTransformMemoryY, double* pTransformMemoryU, double* pTransformMemoryV) {
+
+	Quantizer quantizerY(-127.5, 255.0, m_iQuantizationIntervalsY);
+	Quantizer quantizerU(-111.15756, 111.15756, m_iQuantizationIntervalsU);
+	Quantizer quantizerV(-156.768135, 156.768135, m_iQuantizationIntervalsV);
+
 //	const double step = 1.0 / 16.0;
 
-//	double Rmin = 0.0, Rmax = 0.0, Gmin = 0.0, Gmax = 0.0, Bmin = 0.0, Bmax = 0.0;
+	for(unsigned int i = 0; i < m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight(); ++i) {
+		pTransformMemoryY[i] = quantizerY.quantize(pTransformMemoryY[i]);
+		pTransformMemoryU[i] = quantizerU.quantize(pTransformMemoryU[i]);
+		pTransformMemoryV[i] = quantizerV.quantize(pTransformMemoryV[i]);
 
-	Quantizer quantizer(-127.5, 255.0, 256);
-
-	for(unsigned int i = 0; i < m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight(); ++i) {
-
-//		if(pTransformMemoryR[i] < Rmin) {
-//			Rmin = pTransformMemoryR[i];
-//		}
-//		if(pTransformMemoryR[i] > Rmax) {
-//			Rmax = pTransformMemoryR[i];
-//		}
-//		if(pTransformMemoryG[i] < Gmin) {
-//			Gmin = pTransformMemoryG[i];
-//		}
-//		if(pTransformMemoryG[i] > Gmax) {
-//			Gmax = pTransformMemoryG[i];
-//		}
-//		if(pTransformMemoryB[i] < Bmin) {
-//			Bmin = pTransformMemoryB[i];
-//		}
-//		if(pTransformMemoryB[i] > Bmax) {
-//			Bmax = pTransformMemoryB[i];
-//		}
-
-//		pTransformMemoryR[i] = Quantizer::getApproximation(pTransformMemoryR[i], step);
-//		pTransformMemoryG[i] = Quantizer::getApproximation(pTransformMemoryG[i], step);
-//		pTransformMemoryB[i] = Quantizer::getApproximation(pTransformMemoryB[i], step);
-
-		pTransformMemoryR[i] = quantizer.quantize(pTransformMemoryR[i]);
-		pTransformMemoryG[i] = quantizer.quantize(pTransformMemoryG[i]);
-		pTransformMemoryB[i] = quantizer.quantize(pTransformMemoryB[i]);
+//		pTransformMemoryY[i] = Quantizer::getApproximation(pTransformMemoryY[i], step);
+//		pTransformMemoryU[i] = Quantizer::getApproximation(pTransformMemoryU[i], step);
+//		pTransformMemoryV[i] = Quantizer::getApproximation(pTransformMemoryV[i], step);
 	}
-
-//	printf("Rmin: %f, Rmax: %f\n", Rmin, Rmax);
-//	printf("Gmin: %f, Gmax: %f\n", Gmin, Gmax);
-//	printf("Bmin: %f, Bmax: %f\n", Bmin, Bmax);
 }
 
 void WaveletCompressor::compressRGB() {
 	printf("Transform...\n");
 
-	double* transformMemoryR = 0;
-	double* transformMemoryG = 0;
-	double* transformMemoryB = 0;
-	transformMemoryR = allocateTransformMemory(m_pWaveletTransformR);
-	transformMemoryG = allocateTransformMemory(m_pWaveletTransformG);
-	transformMemoryB = allocateTransformMemory(m_pWaveletTransformB);
+	double* transformMemoryY = 0;
+	double* transformMemoryU = 0;
+	double* transformMemoryV = 0;
+	transformMemoryY = allocateTransformMemory(m_pWaveletTransformY);
+	transformMemoryU = allocateTransformMemory(m_pWaveletTransformU);
+	transformMemoryV = allocateTransformMemory(m_pWaveletTransformV);
 
-	setTransformMemory(transformMemoryR, transformMemoryG, transformMemoryB);
-	m_pWaveletTransformR->transform();
-	m_pWaveletTransformG->transform();
-	m_pWaveletTransformB->transform();
+	setTransformMemory(transformMemoryY, transformMemoryU, transformMemoryV);
+	m_pWaveletTransformY->transform();
+	m_pWaveletTransformU->transform();
+	m_pWaveletTransformV->transform();
 
 	printf("Quantization...\n");
-	quantization(transformMemoryR, transformMemoryG, transformMemoryB);
+	quantization(transformMemoryY, transformMemoryU, transformMemoryV);
 
 	encode();
 }
@@ -238,12 +224,12 @@ HuffmanCoding<RLE<double>::Run >::Leaf* WaveletCompressor::getLeafs(
 void WaveletCompressor::encode() {
 	printf("RLE encode...\n");
 
-	const unsigned int size = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight();
-	RLE<double> rleR(m_pWaveletTransformR->getTransformMemory(), size);
+	const unsigned int size = m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight();
+	RLE<double> rleR(m_pWaveletTransformY->getTransformMemory(), size);
 	rleR.encode();
-	RLE<double> rleG(m_pWaveletTransformG->getTransformMemory(), size);
+	RLE<double> rleG(m_pWaveletTransformU->getTransformMemory(), size);
 	rleG.encode();
-	RLE<double> rleB(m_pWaveletTransformB->getTransformMemory(), size);
+	RLE<double> rleB(m_pWaveletTransformV->getTransformMemory(), size);
 	rleB.encode();
 
 	printf("Huffman Coding...\n");
@@ -295,6 +281,9 @@ void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<doubl
 	header.CodeTableSize = codeTable.size();
 	header.DataSize = dataSize;
 	header.EncodedItems = encodedItems;
+	header.QuantizationIntervals[0] = m_iQuantizationIntervalsY;
+	header.QuantizationIntervals[1] = m_iQuantizationIntervalsU;
+	header.QuantizationIntervals[2] = m_iQuantizationIntervalsV;
 	m_outputFile.write((char*)&header, HEADER_SIZE);
 
 	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;
