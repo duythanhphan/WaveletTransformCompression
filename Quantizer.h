@@ -10,8 +10,22 @@
 
 class Quantizer {
 public:
+	Quantizer(double min, double max, unsigned int numberOfIntervals);
+
+	double quantize(double value);
+	double inverseQuantize(double index);
+
+public:
 	static double round(double value);
 	static inline double getApproximation(double value, double step);
+
+private:
+	double m_dMin;
+	double m_dMax;
+	unsigned int m_iNumberOfIntervals;
+	double m_dIntervalLength;
+
+	double m_dAddValue;//(m_dIntervalLenght / 2) + m_dMin
 };
 
 double Quantizer::getApproximation(double value, double step) {

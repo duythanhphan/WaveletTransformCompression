@@ -12,6 +12,7 @@
 #include "UnsignedInteger.h"
 #include "HuffmanDecoder.h"
 #include "RLEDecoder.h"
+#include "Quantizer.h"
 
 using namespace std;
 
@@ -193,10 +194,27 @@ void WaveletDecompressor::decode() {
 	delete[] encodedData;
 }
 
+void WaveletDecompressor::inverseQuantization() {
+	double* pTransformR = m_pWaveletTransformR->getTransformMemory();
+	double* pTransformG = m_pWaveletTransformG->getTransformMemory();
+	double* pTransformB = m_pWaveletTransformB->getTransformMemory();
+
+	Quantizer quantizer(-127.5, 255.0, 256);
+
+	for(unsigned int i = 0; i < m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight(); ++i) {
+		pTransformR[i] = quantizer.inverseQuantize(pTransformR[i]);
+		pTransformG[i] = quantizer.inverseQuantize(pTransformG[i]);
+		pTransformB[i] = quantizer.inverseQuantize(pTransformB[i]);
+	}
+}
+
 void WaveletDecompressor::decompressRGB() {
 	readCodeTable();
 
 	decode();
+
+	printf("Assign values to quantized indexes...\n");
+	inverseQuantization();
 
 	printf("Inverse Transform...\n");
 

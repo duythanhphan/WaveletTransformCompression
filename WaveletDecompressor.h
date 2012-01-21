@@ -35,6 +35,7 @@ private:
 	void decompressRGB();
 
 	void decode();
+	void inverseQuantization();
 
 private:
 	WaveletTransform* m_pWaveletTransformR;

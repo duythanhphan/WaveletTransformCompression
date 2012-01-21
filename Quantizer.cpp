@@ -9,6 +9,19 @@
 
 #include "Quantizer.h"
 
+Quantizer::Quantizer(double min, double max, unsigned int numberOfIntervals) :
+	m_dMin(min), m_dMax(max), m_iNumberOfIntervals(numberOfIntervals),
+	m_dIntervalLength((m_dMax - m_dMin) / (double)m_iNumberOfIntervals),
+	m_dAddValue((m_dIntervalLength / 2.0) + m_dMin) { }
+
+double Quantizer::quantize(double value) {
+	return floor((value - m_dMin) / m_dIntervalLength);
+}
+
+double Quantizer::inverseQuantize(double index) {
+	return (index * m_dIntervalLength) + m_dAddValue;
+}
+
 double Quantizer::round(double value) {
 	double intPart = 0.0;
 	double fractionalPart = 0.0;

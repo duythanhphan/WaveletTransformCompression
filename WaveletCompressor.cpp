@@ -136,12 +136,45 @@ void WaveletCompressor::setTransformMemory(
 }
 
 void WaveletCompressor::quantization(double* pTransformMemoryR, double* pTransformMemoryG, double* pTransformMemoryB) {
-	const double step = 1.0 / 16.0;
+//	const double step = 1.0 / 16.0;
+
+//	double Rmin = 0.0, Rmax = 0.0, Gmin = 0.0, Gmax = 0.0, Bmin = 0.0, Bmax = 0.0;
+
+	Quantizer quantizer(-127.5, 255.0, 256);
+
 	for(unsigned int i = 0; i < m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight(); ++i) {
-		pTransformMemoryR[i] = Quantizer::getApproximation(pTransformMemoryR[i], step);
-		pTransformMemoryG[i] = Quantizer::getApproximation(pTransformMemoryG[i], step);
-		pTransformMemoryB[i] = Quantizer::getApproximation(pTransformMemoryB[i], step);
+
+//		if(pTransformMemoryR[i] < Rmin) {
+//			Rmin = pTransformMemoryR[i];
+//		}
+//		if(pTransformMemoryR[i] > Rmax) {
+//			Rmax = pTransformMemoryR[i];
+//		}
+//		if(pTransformMemoryG[i] < Gmin) {
+//			Gmin = pTransformMemoryG[i];
+//		}
+//		if(pTransformMemoryG[i] > Gmax) {
+//			Gmax = pTransformMemoryG[i];
+//		}
+//		if(pTransformMemoryB[i] < Bmin) {
+//			Bmin = pTransformMemoryB[i];
+//		}
+//		if(pTransformMemoryB[i] > Bmax) {
+//			Bmax = pTransformMemoryB[i];
+//		}
+
+//		pTransformMemoryR[i] = Quantizer::getApproximation(pTransformMemoryR[i], step);
+//		pTransformMemoryG[i] = Quantizer::getApproximation(pTransformMemoryG[i], step);
+//		pTransformMemoryB[i] = Quantizer::getApproximation(pTransformMemoryB[i], step);
+
+		pTransformMemoryR[i] = quantizer.quantize(pTransformMemoryR[i]);
+		pTransformMemoryG[i] = quantizer.quantize(pTransformMemoryG[i]);
+		pTransformMemoryB[i] = quantizer.quantize(pTransformMemoryB[i]);
 	}
+
+//	printf("Rmin: %f, Rmax: %f\n", Rmin, Rmax);
+//	printf("Gmin: %f, Gmax: %f\n", Gmin, Gmax);
+//	printf("Bmin: %f, Bmax: %f\n", Bmin, Bmax);
 }
 
 void WaveletCompressor::compressRGB() {
@@ -206,11 +239,11 @@ void WaveletCompressor::encode() {
 	printf("RLE encode...\n");
 
 	const unsigned int size = m_pWaveletTransformR->getWidth() * m_pWaveletTransformR->getHeight();
-	RLE<double> rleR(m_pWaveletTransformR->getTransfomrMemory(), size);
+	RLE<double> rleR(m_pWaveletTransformR->getTransformMemory(), size);
 	rleR.encode();
-	RLE<double> rleG(m_pWaveletTransformG->getTransfomrMemory(), size);
+	RLE<double> rleG(m_pWaveletTransformG->getTransformMemory(), size);
 	rleG.encode();
-	RLE<double> rleB(m_pWaveletTransformB->getTransfomrMemory(), size);
+	RLE<double> rleB(m_pWaveletTransformB->getTransformMemory(), size);
 	rleB.encode();
 
 	printf("Huffman Coding...\n");
