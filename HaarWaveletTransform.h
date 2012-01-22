@@ -25,18 +25,9 @@ public:
 	virtual ~HaarWaveletTransform();
 
 
-	virtual void transform();
-	virtual void inverseTransform();
-
 private:
 	void decompositionStep(double* data, double* transform, unsigned int size);
-	void decomposition(double* data, double* transform, unsigned int size);
-
 	void inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size);
-	void inverseDecomposition(double* data, double* inverseTransform, unsigned int size);
-
-	void copyColumn(double* data, unsigned int column);
-	void setColumn(double* data, unsigned int column);
 };
 
 #endif /* HAARWAVELETTRANSFORM_H_ */

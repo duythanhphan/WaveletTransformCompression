@@ -14,6 +14,7 @@
 #include <FreeImage.h>
 
 #include "HaarWaveletTransform.h"
+#include "D4WaveletTransform.h"
 #include "WaveletCompressor.h"
 
 class WaveletDecompressor {

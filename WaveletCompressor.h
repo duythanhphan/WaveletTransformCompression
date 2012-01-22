@@ -12,6 +12,7 @@
 #include <map>
 
 #include "HaarWaveletTransform.h"
+#include "D4WaveletTransform.h"
 #include "Image.h"
 #include "Quantizer.h"
 #include "RLE.h"
@@ -21,7 +22,8 @@ class WaveletCompressor {
 public:
 	enum WaveletType {
 		NotSet = 0,
-		Haar
+		Haar,
+		D4
 	};
 
 	struct Header {

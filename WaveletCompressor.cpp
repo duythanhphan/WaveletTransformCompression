@@ -70,6 +70,12 @@ bool WaveletCompressor::compress(WaveletType waveletType) {
 		m_pWaveletTransformV = new HaarWaveletTransform();
 		m_waveletType = Haar;
 		break;
+	case D4:
+		m_pWaveletTransformY = new D4WaveletTransform();
+		m_pWaveletTransformU = new D4WaveletTransform();
+		m_pWaveletTransformV = new D4WaveletTransform();
+		m_waveletType = D4;
+		break;
 	default:
 		fprintf(stderr, "Unsupported wavelet type.\n");
 		return false;

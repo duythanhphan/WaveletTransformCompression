@@ -97,6 +97,11 @@ bool WaveletDecompressor::decompress() {
 		m_pWaveletTransformU = new HaarWaveletTransform();
 		m_pWaveletTransformV = new HaarWaveletTransform();
 		break;
+	case WaveletCompressor::D4:
+		m_pWaveletTransformY = new D4WaveletTransform();
+		m_pWaveletTransformU = new D4WaveletTransform();
+		m_pWaveletTransformV = new D4WaveletTransform();
+		break;
 	default:
 		fprintf(stderr, "Unsupported wavelet.\n");
 		return false;

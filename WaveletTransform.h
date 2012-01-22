@@ -10,8 +10,8 @@
 
 class WaveletTransform {
 public:
-	virtual void transform() = 0;
-	virtual void inverseTransform() = 0;
+	void transform();
+	void inverseTransform();
 
 	WaveletTransform();
 	/*
@@ -43,6 +43,16 @@ public:
 	inline unsigned int getHeight();
 	inline double getItem(unsigned int row, unsigned int column);
 	inline double* getTransformMemory();
+
+protected:
+	virtual void decompositionStep(double* data, double* transform, unsigned int size) = 0;
+	void decomposition(double* data, double* transform, unsigned int size);
+
+	virtual void inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size) = 0;
+	void inverseDecomposition(double* data, double* inverseTransform, unsigned int size);
+
+	void copyColumn(double* data, unsigned int column);
+	void setColumn(double* data, unsigned int column);
 
 protected:
 	double* m_pImageTransform;
