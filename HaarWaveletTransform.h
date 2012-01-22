@@ -12,6 +12,9 @@
 
 class HaarWaveletTransform : public WaveletTransform {
 public:
+	static const double SQRT2;
+
+public:
 	HaarWaveletTransform();
 	/*
 	 * 		Constructor of transform if CopyData is set to true it calls copyData, else it
