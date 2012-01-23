@@ -37,6 +37,7 @@ private:
 
 	void decode();
 	void inverseQuantization();
+	BYTE clamp(double d);
 
 private:
 	WaveletTransform* m_pWaveletTransformY;

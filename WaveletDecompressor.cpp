@@ -168,9 +168,9 @@ void WaveletDecompressor::setPixels() {
 			B = Y + (U / 0.492);
 			G = (Y - 0.299 * R - 0.114 * B) / 0.587;
 
-			bits[FI_RGBA_RED] = (BYTE)R;
-			bits[FI_RGBA_GREEN] = (BYTE)G;
-			bits[FI_RGBA_BLUE] = (BYTE)B;
+			bits[FI_RGBA_RED] = clamp(R);//(BYTE)R;
+			bits[FI_RGBA_GREEN] = clamp(G);//(BYTE)G;
+			bits[FI_RGBA_BLUE] = clamp(B);//(BYTE)B;
 
 			bits += BytesPerPixel;
 		}
@@ -247,3 +247,11 @@ void WaveletDecompressor::decompressRGB() {
 	FreeImage_Save(FIF_BMP, m_pDib, m_sOutputFilename.c_str());
 }
 
+BYTE WaveletDecompressor::clamp(double d) {
+	if(d > 255.0) {
+		d = 255.0;
+	} else if(d < 0.0) {
+		d = 0.0;
+	}
+	return (BYTE)d;
+}
