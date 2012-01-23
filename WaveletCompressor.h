@@ -45,7 +45,7 @@ public:
 
 	bool compress(WaveletType waveletType);
 
-	inline void setQuantizationIntervalsY(unsigned int Y, unsigned int U, unsigned int V);
+	inline void setQuantizationIntervalsY(double Y, double U, double V);
 
 private:
 	void saveHeader(std::map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >& codeTable,
@@ -77,15 +77,15 @@ private:
 	unsigned int m_iBitsPerPixel;
 	WaveletType m_waveletType;
 
-	unsigned int m_iQuantizationIntervalsY;
-	unsigned int m_iQuantizationIntervalsU;
-	unsigned int m_iQuantizationIntervalsV;
+	double m_dQuantizationY;
+	double m_dQuantizationU;
+	double m_dQuantizationV;
 };
 
-void WaveletCompressor::setQuantizationIntervalsY(unsigned int Y, unsigned int U, unsigned int V) {
-	m_iQuantizationIntervalsY = Y;
-	m_iQuantizationIntervalsU = U;
-	m_iQuantizationIntervalsV = V;
+void WaveletCompressor::setQuantizationIntervalsY(double Y, double U, double V) {
+	m_dQuantizationY = Y;
+	m_dQuantizationU = U;
+	m_dQuantizationV = V;
 }
 
 #endif /* WAVLETCOMPRESSOR_H_ */

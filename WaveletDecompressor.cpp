@@ -220,9 +220,9 @@ void WaveletDecompressor::inverseQuantization() {
 	Quantizer quantizerV(-156.768135, 156.768135, m_header.QuantizationIntervals[2]);
 
 	for(unsigned int i = 0; i < m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight(); ++i) {
-		pTransformY[i] = quantizerY.inverseQuantize(pTransformY[i]);
-		pTransformU[i] = quantizerU.inverseQuantize(pTransformU[i]);
-		pTransformV[i] = quantizerV.inverseQuantize(pTransformV[i]);
+		pTransformY[i] *= m_header.QuantizationIntervals[0];
+		pTransformU[i] *= m_header.QuantizationIntervals[1];
+		pTransformV[i] *= m_header.QuantizationIntervals[2];
 	}
 }
 

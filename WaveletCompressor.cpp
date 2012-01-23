@@ -21,9 +21,9 @@ WaveletCompressor::WaveletCompressor() :
 		m_iImageWidth(0), m_iImageHeight(0),
 		m_iBytesPerPixel(0), m_iBitsPerPixel(0),
 		m_waveletType(NotSet),
-		m_iQuantizationIntervalsY(8192),
-		m_iQuantizationIntervalsU(8192),
-		m_iQuantizationIntervalsV(8192){ }
+		m_dQuantizationY(8192),
+		m_dQuantizationU(8192),
+		m_dQuantizationV(8192){ }
 
 bool WaveletCompressor::init(const char* inputFilename, const char* outputFilename) {
 	m_outputFile.open(outputFilename, ofstream::binary);
@@ -152,20 +152,10 @@ void WaveletCompressor::setTransformMemory(
 
 void WaveletCompressor::quantization(double* pTransformMemoryY, double* pTransformMemoryU, double* pTransformMemoryV) {
 
-	Quantizer quantizerY(-127.5, 255.0, m_iQuantizationIntervalsY);
-	Quantizer quantizerU(-111.15756, 111.15756, m_iQuantizationIntervalsU);
-	Quantizer quantizerV(-156.768135, 156.768135, m_iQuantizationIntervalsV);
-
-//	const double step = 1.0 / 16.0;
-
 	for(unsigned int i = 0; i < m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight(); ++i) {
-		pTransformMemoryY[i] = quantizerY.quantize(pTransformMemoryY[i]);
-		pTransformMemoryU[i] = quantizerU.quantize(pTransformMemoryU[i]);
-		pTransformMemoryV[i] = quantizerV.quantize(pTransformMemoryV[i]);
-
-//		pTransformMemoryY[i] = Quantizer::getApproximation(pTransformMemoryY[i], step);
-//		pTransformMemoryU[i] = Quantizer::getApproximation(pTransformMemoryU[i], step);
-//		pTransformMemoryV[i] = Quantizer::getApproximation(pTransformMemoryV[i], step);
+		pTransformMemoryY[i] = (int)(pTransformMemoryY[i] / m_dQuantizationY);
+		pTransformMemoryU[i] = (int)(pTransformMemoryU[i] / m_dQuantizationU);
+		pTransformMemoryV[i] = (int)(pTransformMemoryV[i] / m_dQuantizationV);
 	}
 }
 
@@ -287,9 +277,9 @@ void WaveletCompressor::saveHeader(map<RLE<double>::Run, HuffmanCoding<RLE<doubl
 	header.CodeTableSize = codeTable.size();
 	header.DataSize = dataSize;
 	header.EncodedItems = encodedItems;
-	header.QuantizationIntervals[0] = m_iQuantizationIntervalsY;
-	header.QuantizationIntervals[1] = m_iQuantizationIntervalsU;
-	header.QuantizationIntervals[2] = m_iQuantizationIntervalsV;
+	header.QuantizationIntervals[0] = m_dQuantizationY;
+	header.QuantizationIntervals[1] = m_dQuantizationU;
+	header.QuantizationIntervals[2] = m_dQuantizationV;
 	m_outputFile.write((char*)&header, HEADER_SIZE);
 
 	map<RLE<double>::Run, HuffmanCoding<RLE<double>::Run>::Code >::iterator it;
