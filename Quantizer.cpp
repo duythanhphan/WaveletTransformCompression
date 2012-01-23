@@ -12,14 +12,16 @@
 Quantizer::Quantizer(double min, double max, unsigned int numberOfIntervals) :
 	m_dMin(min), m_dMax(max), m_iNumberOfIntervals(numberOfIntervals),
 	m_dIntervalLength((m_dMax - m_dMin) / (double)m_iNumberOfIntervals),
-	m_dAddValue((m_dIntervalLength / 2.0) + m_dMin) { }
+	m_dAddValue((m_dIntervalLength / 2.0) + m_dMin),
+	Q((double)m_iNumberOfIntervals){ }
 
 double Quantizer::quantize(double value) {
-	return floor((value - m_dMin) / m_dIntervalLength);
+	//return floor((value - m_dMin) / m_dIntervalLength);
+	return (int)(value / Q);
 }
 
 double Quantizer::inverseQuantize(double index) {
-	return (index * m_dIntervalLength) + m_dAddValue;
+	return index * Q;
 }
 
 double Quantizer::round(double value) {

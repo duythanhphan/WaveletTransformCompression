@@ -26,6 +26,8 @@ private:
 	double m_dIntervalLength;
 
 	double m_dAddValue;//(m_dIntervalLenght / 2) + m_dMin
+
+	double Q;
 };
 
 double Quantizer::getApproximation(double value, double step) {
