@@ -13,6 +13,7 @@
 
 #include "HaarWaveletTransform.h"
 #include "D4WaveletTransform.h"
+#include "CDF97WaveletTransform.h"
 #include "Image.h"
 #include "Quantizer.h"
 #include "RLE.h"
@@ -23,6 +24,7 @@ public:
 	enum WaveletType {
 		NotSet = 0,
 		Haar,
+		CDF97,
 		D4
 	};
 

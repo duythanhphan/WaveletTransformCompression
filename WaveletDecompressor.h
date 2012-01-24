@@ -15,6 +15,7 @@
 
 #include "HaarWaveletTransform.h"
 #include "D4WaveletTransform.h"
+#include "CDF97WaveletTransform.h"
 #include "WaveletCompressor.h"
 
 class WaveletDecompressor {

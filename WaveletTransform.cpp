@@ -88,13 +88,13 @@ void WaveletTransform::transform() {
 
 	while(size > 1) {
 		//One transform step for every row
-		for(i = 0; i < m_iSize; ++i) {
+		for(i = 0; i < size; ++i) {
 			decompositionStep(&m_pImageTransform[i * m_iSize], transform, size);
 			memcpy(&m_pImageTransform[i * m_iSize], transform, sizeof(double) * size);
 		}
 
 		//One transform step for every column
-		for(i = 0; i < m_iSize; ++i) {
+		for(i = 0; i < size; ++i) {
 			copyColumn(data, i, size);
 			decompositionStep(data, transform, size);
 			setColumn(transform, i, size);
@@ -119,14 +119,14 @@ void WaveletTransform::inverseTransform() {
 
 	while(currentSize < m_iSize) {
 		//One inverse transform step for every column
-		for(i = 0; i < m_iSize; ++i) {
+		for(i = 0; i < currentSize * 2; ++i) {
 			copyColumn(data, i, currentSize * 2);
 			inverseDecompositionStep(data, inverseTransform, currentSize);
 			setColumn(inverseTransform, i, currentSize * 2);
 		}
 
 		//One inverse transform step for every row
-		for(i = 0; i < m_iSize; ++i) {
+		for(i = 0; i < currentSize * 2; ++i) {
 			inverseDecompositionStep(&m_pImageTransform[i * m_iSize], inverseTransform, currentSize);
 			memcpy(&m_pImageTransform[i * m_iSize], inverseTransform, sizeof(double) * currentSize * 2);
 		}

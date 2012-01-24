@@ -97,6 +97,11 @@ bool WaveletDecompressor::decompress() {
 		m_pWaveletTransformU = new HaarWaveletTransform();
 		m_pWaveletTransformV = new HaarWaveletTransform();
 		break;
+	case WaveletCompressor::CDF97:
+		m_pWaveletTransformY = new CDF97WaveletTransform();
+		m_pWaveletTransformU = new CDF97WaveletTransform();
+		m_pWaveletTransformV = new CDF97WaveletTransform();
+		break;
 	case WaveletCompressor::D4:
 		m_pWaveletTransformY = new D4WaveletTransform();
 		m_pWaveletTransformU = new D4WaveletTransform();

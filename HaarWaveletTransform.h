@@ -26,8 +26,8 @@ public:
 
 
 private:
-	void decompositionStep(double* data, double* transform, unsigned int size);
-	void inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size);
+	virtual void decompositionStep(double* data, double* transform, unsigned int size);
+	virtual void inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size);
 };
 
 #endif /* HAARWAVELETTRANSFORM_H_ */

@@ -70,6 +70,12 @@ bool WaveletCompressor::compress(WaveletType waveletType) {
 		m_pWaveletTransformV = new HaarWaveletTransform();
 		m_waveletType = Haar;
 		break;
+	case CDF97:
+		m_pWaveletTransformY = new CDF97WaveletTransform();
+		m_pWaveletTransformU = new CDF97WaveletTransform();
+		m_pWaveletTransformV = new CDF97WaveletTransform();
+		m_waveletType = CDF97;
+		break;
 	case D4:
 		m_pWaveletTransformY = new D4WaveletTransform();
 		m_pWaveletTransformU = new D4WaveletTransform();
