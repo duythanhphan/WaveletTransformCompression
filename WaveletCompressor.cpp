@@ -110,7 +110,7 @@ double* WaveletCompressor::allocateTransformMemory(WaveletTransform* pWaveletTra
 	}
 
 	double*	pMemory = new double[transformSize * transformSize];
-	pWaveletTransform->setData(pMemory, transformSize, transformSize);
+	pWaveletTransform->setData(pMemory, transformSize);
 
 	return pMemory;
 }
@@ -121,14 +121,14 @@ void WaveletCompressor::setTransformMemory(
 	unsigned int x = 0;
 	unsigned int y = 0;
 	unsigned int i = 0;
-	const size_t bytesToFill = (m_pWaveletTransformY->getWidth() - m_iImageWidth) * sizeof(double);
+	const size_t bytesToFill = (m_pWaveletTransformY->getSize() - m_iImageWidth) * sizeof(double);
 	double R = 0.0, G = 0.0, B = 0.0;
 
 	for(y = 0; y < m_iImageHeight; ++y) {
 		bits = FreeImage_GetScanLine(m_image.getDib(), y);
 
 		for(x = 0; x < m_iImageWidth; ++x) {
-			i = (y * m_pWaveletTransformY->getWidth()) + x;
+			i = (y * m_pWaveletTransformY->getSize()) + x;
 
 			R = (double)bits[FI_RGBA_RED];
 			G = (double)bits[FI_RGBA_GREEN];
@@ -141,15 +141,15 @@ void WaveletCompressor::setTransformMemory(
 			bits += m_iBytesPerPixel;
 		}
 
-		i = (y * m_pWaveletTransformY->getWidth()) + m_iImageWidth;
+		i = (y * m_pWaveletTransformY->getSize()) + m_iImageWidth;
 		memset(&pTransformMemoryY[i], 0, bytesToFill);
 		memset(&pTransformMemoryU[i], 0, bytesToFill);
 		memset(&pTransformMemoryV[i], 0, bytesToFill);
 	}
 
-	const size_t bytesInTransformRow = m_pWaveletTransformY->getWidth() * sizeof(double);
-	for(y = m_iImageHeight; y < m_pWaveletTransformY->getHeight(); ++y) {
-		i = y * m_pWaveletTransformY->getWidth();
+	const size_t bytesInTransformRow = m_pWaveletTransformY->getSize() * sizeof(double);
+	for(y = m_iImageHeight; y < m_pWaveletTransformY->getSize(); ++y) {
+		i = y * m_pWaveletTransformY->getSize();
 		memset(&pTransformMemoryY[i], 0, bytesInTransformRow);
 		memset(&pTransformMemoryU[i], 0, bytesInTransformRow);
 		memset(&pTransformMemoryV[i], 0, bytesInTransformRow);
@@ -158,7 +158,7 @@ void WaveletCompressor::setTransformMemory(
 
 void WaveletCompressor::quantization(double* pTransformMemoryY, double* pTransformMemoryU, double* pTransformMemoryV) {
 
-	for(unsigned int i = 0; i < m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight(); ++i) {
+	for(unsigned int i = 0; i < m_pWaveletTransformY->getSize() * m_pWaveletTransformY->getSize(); ++i) {
 		pTransformMemoryY[i] = (int)(pTransformMemoryY[i] / m_dQuantizationY);
 		pTransformMemoryU[i] = (int)(pTransformMemoryU[i] / m_dQuantizationU);
 		pTransformMemoryV[i] = (int)(pTransformMemoryV[i] / m_dQuantizationV);
@@ -226,7 +226,7 @@ HuffmanCoding<RLE<double>::Run >::Leaf* WaveletCompressor::getLeafs(
 void WaveletCompressor::encode() {
 	printf("RLE encode...\n");
 
-	const unsigned int size = m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight();
+	const unsigned int size = m_pWaveletTransformY->getSize() * m_pWaveletTransformY->getSize();
 	RLE<double> rleR(m_pWaveletTransformY->getTransformMemory(), size);
 	rleR.encode();
 	RLE<double> rleG(m_pWaveletTransformU->getTransformMemory(), size);

@@ -12,48 +12,44 @@
 #include "UnsignedInteger.h"
 #include "WaveletTransform.h"
 
-WaveletTransform::WaveletTransform() : m_pImageTransform(0), m_iWidth(0), m_iHeight(0) { }
+WaveletTransform::WaveletTransform() : m_pImageTransform(0), m_iSize(0) { }
 
-WaveletTransform::WaveletTransform(double* imageData, unsigned int width, unsigned int height, bool CopyData) :
-	m_pImageTransform(0), m_iWidth(0), m_iHeight(0) {
+WaveletTransform::WaveletTransform(double* imageData, unsigned int size, bool CopyData) :
+	m_pImageTransform(0), m_iSize(0) {
 
 	if(CopyData) {
-		copyData(imageData, width, height);
+		copyData(imageData, size);
 	} else {
-		setData(imageData, width, height);
+		setData(imageData, size);
 	}
 }
 
-void WaveletTransform::copyData(double* imageData, unsigned int width, unsigned int height) {
+void WaveletTransform::copyData(double* imageData, unsigned int size) {
 	cleanup();
 
-	m_iWidth = UnsignedInteger::getClosestPowerOfTwo(width);
-	m_iHeight = UnsignedInteger::getClosestPowerOfTwo(height);
+	m_iSize = UnsignedInteger::getClosestPowerOfTwo(size);
 
-	m_pImageTransform = new double[m_iWidth * m_iHeight];
-	const size_t bytesInRow = width * sizeof(double);
-	const size_t bytesToFill = (m_iWidth - width) * sizeof(double);
+	m_pImageTransform = new double[m_iSize * m_iSize];
+	const size_t bytesInRow = size * sizeof(double);
+	const size_t bytesToFill = (m_iSize - size) * sizeof(double);
 
-	for(unsigned int y = 0; y < height; ++y) {
-		memcpy(&m_pImageTransform[y * m_iWidth], &imageData[y * width], bytesInRow);
-		memset(&m_pImageTransform[(y * m_iWidth) + width], 0, bytesToFill);
+	for(unsigned int y = 0; y < size; ++y) {
+		memcpy(&m_pImageTransform[y * m_iSize], &imageData[y * size], bytesInRow);
+		memset(&m_pImageTransform[(y * m_iSize) + size], 0, bytesToFill);
 	}
 
-	const size_t bytesInTransformRow = m_iWidth * sizeof(double);
-	for(unsigned int y = height; y < m_iHeight; ++y) {
-		memset(&m_pImageTransform[y * m_iWidth], 0, bytesInTransformRow);
+	const size_t bytesInTransformRow = m_iSize * sizeof(double);
+	for(unsigned int y = size; y < m_iSize; ++y) {
+		memset(&m_pImageTransform[y * m_iSize], 0, bytesInTransformRow);
 	}
 }
 
-void WaveletTransform::setData(double* imageData, unsigned int width, unsigned int height) {
-	assert(width == UnsignedInteger::getClosestPowerOfTwo(width) &&
-			"WaveletTransform::init width must be power of two");
-	assert(height == UnsignedInteger::getClosestPowerOfTwo(height) &&
-			"WaveletTransform::init height must be power of two");
+void WaveletTransform::setData(double* imageData, unsigned int size) {
+	assert(size == UnsignedInteger::getClosestPowerOfTwo(size) &&
+			"WaveletTransform::init size must be power of two");
 
 	m_pImageTransform = imageData;
-	m_iWidth = width;
-	m_iHeight = height;
+	m_iSize = size;
 }
 
 WaveletTransform::~WaveletTransform() {
@@ -64,20 +60,19 @@ void WaveletTransform::cleanup() {
 	if(m_pImageTransform != 0) {
 		delete[] m_pImageTransform;
 		m_pImageTransform = 0;
-		m_iWidth = 0;
-		m_iHeight = 0;
+		m_iSize = 0;
 	}
 }
 
 void WaveletTransform::copyColumn(double* data, unsigned int column, unsigned int size) {
 	for(unsigned int i = 0; i < size; ++i) {
-		data[i] = m_pImageTransform[column + (i * m_iWidth)];
+		data[i] = m_pImageTransform[column + (i * m_iSize)];
 	}
 }
 
 void WaveletTransform::setColumn(double* data, unsigned int column, unsigned int size) {
 	for(unsigned int i = 0; i < size; ++i) {
-		m_pImageTransform[column + (i * m_iWidth)] = data[i];
+		m_pImageTransform[column + (i * m_iSize)] = data[i];
 	}
 }
 
@@ -86,20 +81,20 @@ void WaveletTransform::setColumn(double* data, unsigned int column, unsigned int
  */
 void WaveletTransform::transform() {
 	unsigned int i = 0;
-	double* transform = new double[m_iWidth];
-	double* data = new double[m_iHeight];
+	double* transform = new double[m_iSize];
+	double* data = new double[m_iSize];
 
-	unsigned int size = m_iWidth;
+	unsigned int size = m_iSize;
 
 	while(size > 1) {
 		//One transform step for every row
-		for(i = 0; i < m_iHeight; ++i) {
-			decompositionStep(&m_pImageTransform[i * m_iWidth], transform, size);
-			memcpy(&m_pImageTransform[i * m_iWidth], transform, sizeof(double) * size);
+		for(i = 0; i < m_iSize; ++i) {
+			decompositionStep(&m_pImageTransform[i * m_iSize], transform, size);
+			memcpy(&m_pImageTransform[i * m_iSize], transform, sizeof(double) * size);
 		}
 
 		//One transform step for every column
-		for(i = 0; i < m_iWidth; ++i) {
+		for(i = 0; i < m_iSize; ++i) {
 			copyColumn(data, i, size);
 			decompositionStep(data, transform, size);
 			setColumn(transform, i, size);
@@ -117,23 +112,23 @@ void WaveletTransform::transform() {
  */
 void WaveletTransform::inverseTransform() {
 	unsigned int i = 0;
-	double* data = new double[m_iHeight];
-	double* inverseTransform = new double[m_iHeight];
+	double* data = new double[m_iSize];
+	double* inverseTransform = new double[m_iSize];
 
 	unsigned int currentSize = 1;
 
-	while(currentSize < m_iHeight) {
+	while(currentSize < m_iSize) {
 		//One inverse transform step for every column
-		for(i = 0; i < m_iWidth; ++i) {
+		for(i = 0; i < m_iSize; ++i) {
 			copyColumn(data, i, currentSize * 2);
 			inverseDecompositionStep(data, inverseTransform, currentSize);
 			setColumn(inverseTransform, i, currentSize * 2);
 		}
 
 		//One inverse transform step for every row
-		for(i = 0; i < m_iHeight; ++i) {
-			inverseDecompositionStep(&m_pImageTransform[i * m_iWidth], inverseTransform, currentSize);
-			memcpy(&m_pImageTransform[i * m_iWidth], inverseTransform, sizeof(double) * currentSize * 2);
+		for(i = 0; i < m_iSize; ++i) {
+			inverseDecompositionStep(&m_pImageTransform[i * m_iSize], inverseTransform, currentSize);
+			memcpy(&m_pImageTransform[i * m_iSize], inverseTransform, sizeof(double) * currentSize * 2);
 		}
 
 		currentSize <<= 1;

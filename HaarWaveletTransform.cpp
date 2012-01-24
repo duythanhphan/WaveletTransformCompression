@@ -14,8 +14,8 @@ const double HaarWaveletTransform::SQRT2 = sqrt(2.0);
 
 HaarWaveletTransform::HaarWaveletTransform() : WaveletTransform() { }
 
-HaarWaveletTransform::HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height, bool CopyData) :
-	WaveletTransform(imageData, width, height, CopyData) {
+HaarWaveletTransform::HaarWaveletTransform(double* imageData, unsigned int size, bool CopyData) :
+	WaveletTransform(imageData, size, CopyData) {
 }
 
 HaarWaveletTransform::~HaarWaveletTransform() { }

@@ -58,7 +58,7 @@ private:
 };
 
 void WaveletDecompressor::readData(double* transformMemory) {
-	unsigned int size = m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight() * sizeof(double);
+	unsigned int size = m_pWaveletTransformY->getSize() * m_pWaveletTransformY->getSize() * sizeof(double);
 	char* pTransformMemory = (char*)transformMemory;
 	m_inputFile.read(pTransformMemory, size);
 }

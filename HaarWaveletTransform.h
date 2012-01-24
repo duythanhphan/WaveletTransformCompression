@@ -20,7 +20,7 @@ public:
 	 * 		Constructor of transform if CopyData is set to true it calls copyData, else it
 	 * 		calls setData method.
 	 */
-	HaarWaveletTransform(double* imageData, unsigned int width, unsigned int height, bool CopyData = true);
+	HaarWaveletTransform(double* imageData, unsigned int size, bool CopyData = true);
 
 	virtual ~HaarWaveletTransform();
 
