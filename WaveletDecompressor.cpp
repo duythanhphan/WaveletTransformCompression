@@ -198,21 +198,15 @@ void WaveletDecompressor::decode() {
 
 	RLE<double>::Run* pRuns = huffmanDecoder.getDecodedData();
 
-	unsigned int transformWidth = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageWidth);
-	unsigned int transformHeight = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageHeight);
-	unsigned int transformSize =  transformWidth * transformHeight;
-	double* pTransformY = new double[transformSize];
-	double* pTransformU = new double[transformSize];
-	double* pTransformV = new double[transformSize];
+	double* pTransformY = allocateTransformMemory(m_pWaveletTransformY);
+	double* pTransformU = allocateTransformMemory(m_pWaveletTransformU);
+	double* pTransformV = allocateTransformMemory(m_pWaveletTransformV);
+	unsigned int transformSize =  m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight();
 
 	RLEDecoder<double> rleDecoder(pRuns, huffmanDecoder.getDecodedDataSize());
 	rleDecoder.decode(pTransformY, transformSize);
 	rleDecoder.decode(pTransformU, transformSize);
 	rleDecoder.decode(pTransformV, transformSize);
-
-	m_pWaveletTransformY->setData(pTransformY, transformWidth, transformHeight);
-	m_pWaveletTransformU->setData(pTransformU, transformWidth, transformHeight);
-	m_pWaveletTransformV->setData(pTransformV, transformWidth, transformHeight);
 
 	delete[] encodedData;
 }
@@ -221,10 +215,6 @@ void WaveletDecompressor::inverseQuantization() {
 	double* pTransformY = m_pWaveletTransformY->getTransformMemory();
 	double* pTransformU = m_pWaveletTransformU->getTransformMemory();
 	double* pTransformV = m_pWaveletTransformV->getTransformMemory();
-
-	Quantizer quantizerY(-127.5, 255.0, m_header.QuantizationIntervals[0]);
-	Quantizer quantizerU(-111.15756, 111.15756, m_header.QuantizationIntervals[1]);
-	Quantizer quantizerV(-156.768135, 156.768135, m_header.QuantizationIntervals[2]);
 
 	for(unsigned int i = 0; i < m_pWaveletTransformY->getWidth() * m_pWaveletTransformY->getHeight(); ++i) {
 		pTransformY[i] *= m_header.QuantizationIntervals[0];
