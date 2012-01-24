@@ -6,12 +6,14 @@
  */
 
 #include "CDF97WaveletTransform.h"
+#include <cstring>
 
 CDF97WaveletTransform::CDF97WaveletTransform() { }
 
 CDF97WaveletTransform::~CDF97WaveletTransform() { }
 
 void CDF97WaveletTransform::decompositionStep(double* data, double* transform, unsigned int size) {
+//	memcpy(transform, data, sizeof(double) * size);
 	double a = 0.0;
 	unsigned int i = 0;
 	unsigned int halfSize = size / 2;
@@ -54,11 +56,13 @@ void CDF97WaveletTransform::decompositionStep(double* data, double* transform, u
 	//Pack
 	for(i = 0; i < halfSize; ++i) {
 		transform[i] = data[2 * i];
-		transform[halfSize + 1] = data[(2 * i) + i];
+		transform[halfSize + i] = data[(2 * i) + 1];
 	}
 }
 
 void CDF97WaveletTransform::inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size) {
+//	memcpy(inverseTransform, data, sizeof(double) * size * 2);
+
 	double a = 0.0;
 	unsigned int i = 0;
 	unsigned int transformSize = 2 * size;
