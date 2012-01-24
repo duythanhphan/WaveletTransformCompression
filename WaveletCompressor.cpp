@@ -109,7 +109,7 @@ double* WaveletCompressor::allocateTransformMemory(WaveletTransform* pWaveletTra
 		transformSize = transformHeight;
 	}
 
-	double*	pMemory = new double[transformSize];
+	double*	pMemory = new double[transformSize * transformSize];
 	pWaveletTransform->setData(pMemory, transformSize, transformSize);
 
 	return pMemory;

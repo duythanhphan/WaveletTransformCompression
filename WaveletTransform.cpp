@@ -84,14 +84,6 @@ void WaveletTransform::setColumn(double* data, unsigned int column, unsigned int
 /*
  * 		Transform
  */
-void WaveletTransform::decomposition(double* data, double* transform, unsigned int size) {
-	while(size > 1) {
-		decompositionStep(data, transform, size);
-		memcpy(data, transform, sizeof(double) * size);
-		size /= 2;
-	}
-}
-
 void WaveletTransform::transform() {
 	unsigned int i = 0;
 	double* transform = new double[m_iWidth];
@@ -100,17 +92,16 @@ void WaveletTransform::transform() {
 	unsigned int size = m_iWidth;
 
 	while(size > 1) {
+		//One transform step for every row
 		for(i = 0; i < m_iHeight; ++i) {
 			decompositionStep(&m_pImageTransform[i * m_iWidth], transform, size);
 			memcpy(&m_pImageTransform[i * m_iWidth], transform, sizeof(double) * size);
 		}
 
+		//One transform step for every column
 		for(i = 0; i < m_iWidth; ++i) {
 			copyColumn(data, i, size);
-
 			decompositionStep(data, transform, size);
-			//memcpy(data, transform, sizeof(double) * size);
-
 			setColumn(transform, i, size);
 		}
 
@@ -124,15 +115,6 @@ void WaveletTransform::transform() {
 /*
  * 		Inverse Transform
  */
-void WaveletTransform::inverseDecomposition(double* data, double* inverseTransform, unsigned int size) {
-	unsigned int currentSize = 1;
-	while(currentSize < size) {
-		inverseDecompositionStep(data, inverseTransform, currentSize);
-		currentSize <<= 1;
-		memcpy(data, inverseTransform, sizeof(double) * currentSize);
-	}
-}
-
 void WaveletTransform::inverseTransform() {
 	unsigned int i = 0;
 	double* data = new double[m_iHeight];
@@ -141,15 +123,14 @@ void WaveletTransform::inverseTransform() {
 	unsigned int currentSize = 1;
 
 	while(currentSize < m_iHeight) {
+		//One inverse transform step for every column
 		for(i = 0; i < m_iWidth; ++i) {
 			copyColumn(data, i, currentSize * 2);
-
 			inverseDecompositionStep(data, inverseTransform, currentSize);
-			//memcpy(data, inverseTransform, sizeof(double) * currentSize);
-
 			setColumn(inverseTransform, i, currentSize * 2);
 		}
 
+		//One inverse transform step for every row
 		for(i = 0; i < m_iHeight; ++i) {
 			inverseDecompositionStep(&m_pImageTransform[i * m_iWidth], inverseTransform, currentSize);
 			memcpy(&m_pImageTransform[i * m_iWidth], inverseTransform, sizeof(double) * currentSize * 2);
