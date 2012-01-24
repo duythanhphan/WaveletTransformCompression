@@ -102,9 +102,15 @@ double* WaveletCompressor::allocateTransformMemory(WaveletTransform* pWaveletTra
 
 	unsigned int transformWidth = UnsignedInteger::getClosestPowerOfTwo(m_iImageWidth);
 	unsigned int transformHeight = UnsignedInteger::getClosestPowerOfTwo(m_iImageHeight);
+	unsigned int transformSize = 0;
+	if(transformWidth > transformHeight) {
+		transformSize = transformWidth;
+	} else {
+		transformSize = transformHeight;
+	}
 
-	double*	pMemory = new double[transformWidth * transformHeight];
-	pWaveletTransform->setData(pMemory, transformWidth, transformHeight);
+	double*	pMemory = new double[transformSize];
+	pWaveletTransform->setData(pMemory, transformSize, transformSize);
 
 	return pMemory;
 }

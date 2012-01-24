@@ -51,8 +51,8 @@ protected:
 	virtual void inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size) = 0;
 	void inverseDecomposition(double* data, double* inverseTransform, unsigned int size);
 
-	void copyColumn(double* data, unsigned int column);
-	void setColumn(double* data, unsigned int column);
+	void copyColumn(double* data, unsigned int column, unsigned int size);
+	void setColumn(double* data, unsigned int column, unsigned int size);
 
 protected:
 	double* m_pImageTransform;

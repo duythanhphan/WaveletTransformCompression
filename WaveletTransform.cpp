@@ -69,14 +69,14 @@ void WaveletTransform::cleanup() {
 	}
 }
 
-void WaveletTransform::copyColumn(double* data, unsigned int column) {
-	for(unsigned int i = 0; i < m_iHeight; ++i) {
+void WaveletTransform::copyColumn(double* data, unsigned int column, unsigned int size) {
+	for(unsigned int i = 0; i < size; ++i) {
 		data[i] = m_pImageTransform[column + (i * m_iWidth)];
 	}
 }
 
-void WaveletTransform::setColumn(double* data, unsigned int column) {
-	for(unsigned int i = 0; i < m_iHeight; ++i) {
+void WaveletTransform::setColumn(double* data, unsigned int column, unsigned int size) {
+	for(unsigned int i = 0; i < size; ++i) {
 		m_pImageTransform[column + (i * m_iWidth)] = data[i];
 	}
 }
@@ -95,21 +95,26 @@ void WaveletTransform::decomposition(double* data, double* transform, unsigned i
 void WaveletTransform::transform() {
 	unsigned int i = 0;
 	double* transform = new double[m_iWidth];
-
-	for(i = 0; i < m_iHeight; ++i) {
-		decomposition(&m_pImageTransform[i * m_iWidth], transform, m_iWidth);
-	}
-
-	if(m_iWidth != m_iHeight) {
-		delete[] transform;
-		transform = new double[m_iHeight];
-	}
-
 	double* data = new double[m_iHeight];
-	for(i = 0; i < m_iWidth; ++i) {
-		copyColumn(data, i);
-		decomposition(data, transform, m_iHeight);
-		setColumn(transform, i);
+
+	unsigned int size = m_iWidth;
+
+	while(size > 1) {
+		for(i = 0; i < m_iHeight; ++i) {
+			decompositionStep(&m_pImageTransform[i * m_iWidth], transform, size);
+			memcpy(&m_pImageTransform[i * m_iWidth], transform, sizeof(double) * size);
+		}
+
+		for(i = 0; i < m_iWidth; ++i) {
+			copyColumn(data, i, size);
+
+			decompositionStep(data, transform, size);
+			//memcpy(data, transform, sizeof(double) * size);
+
+			setColumn(transform, i, size);
+		}
+
+		size /= 2;
 	}
 
 	delete[] transform;
@@ -133,22 +138,28 @@ void WaveletTransform::inverseTransform() {
 	double* data = new double[m_iHeight];
 	double* inverseTransform = new double[m_iHeight];
 
-	for(i = 0; i < m_iWidth; ++i) {
-		copyColumn(data, i);
-		inverseDecomposition(data, inverseTransform, m_iHeight);
-		setColumn(inverseTransform, i);
+	unsigned int currentSize = 1;
+
+	while(currentSize < m_iHeight) {
+		for(i = 0; i < m_iWidth; ++i) {
+			copyColumn(data, i, currentSize * 2);
+
+			inverseDecompositionStep(data, inverseTransform, currentSize);
+			//memcpy(data, inverseTransform, sizeof(double) * currentSize);
+
+			setColumn(inverseTransform, i, currentSize * 2);
+		}
+
+		for(i = 0; i < m_iHeight; ++i) {
+			inverseDecompositionStep(&m_pImageTransform[i * m_iWidth], inverseTransform, currentSize);
+			memcpy(&m_pImageTransform[i * m_iWidth], inverseTransform, sizeof(double) * currentSize * 2);
+		}
+
+		currentSize <<= 1;
 	}
+
+
 	delete[] data;
-
-	if(m_iWidth != m_iHeight) {
-		delete[] inverseTransform;
-		inverseTransform = new double[m_iWidth];
-	}
-
-	for(i = 0; i < m_iHeight; ++i) {
-		inverseDecomposition(&m_pImageTransform[i * m_iWidth], inverseTransform, m_iWidth);
-	}
-
 	delete[] inverseTransform;
 }
 

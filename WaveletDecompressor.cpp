@@ -140,9 +140,16 @@ bool WaveletDecompressor::readCodeTable() {
 double* WaveletDecompressor::allocateTransformMemory(WaveletTransform* pWaveletTransform) {
 	unsigned int transformWidth = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageWidth);
 	unsigned int transformHeight = UnsignedInteger::getClosestPowerOfTwo(m_header.ImageHeight);
-	double* transformMemory = new double[transformWidth * transformHeight];
+	unsigned int transformSize = 0;
+	if(transformWidth > transformHeight) {
+		transformSize = transformWidth;
+	} else {
+		transformSize = transformHeight;
+	}
 
-	pWaveletTransform->setData(transformMemory, transformWidth, transformHeight);
+	double* transformMemory = new double[transformSize * transformSize];
+
+	pWaveletTransform->setData(transformMemory, transformSize, transformSize);
 
 	return transformMemory;
 }
