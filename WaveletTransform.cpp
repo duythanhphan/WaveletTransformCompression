@@ -116,7 +116,6 @@ void WaveletTransform::inverseTransform() {
 	double* inverseTransform = new double[m_iSize];
 
 	unsigned int currentSize = 1;
-	//unsigned int currentSize = m_iSize / 2;
 
 	while(currentSize < m_iSize) {
 		//One inverse transform step for every column
