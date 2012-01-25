@@ -7,50 +7,60 @@
 
 #include "CDF97WaveletTransform.h"
 #include <cstring>
+#include <cmath>
+
+const double CDF97WaveletTransform::a1 = -1.586134342;
+const double CDF97WaveletTransform::a2 = -0.05298011854;
+const double CDF97WaveletTransform::a3 = 0.8829110762;
+const double CDF97WaveletTransform::a4 = 0.4435068522;
+
+const double CDF97WaveletTransform::k1 = 1.149604398;//0.81289306611596146;
+const double CDF97WaveletTransform::k2 = 1 / 1.149604398;//0.61508705245700002;
+
+const double CDF97WaveletTransform::invA1 = -0.4435068522;
+const double CDF97WaveletTransform::invA2 = -0.8829110762;
+const double CDF97WaveletTransform::invA3 = 0.05298011854;
+const double CDF97WaveletTransform::invA4 = 1.586134342;
+
+const double CDF97WaveletTransform::invK1 = 1 / 1.149604398;//1.230174104914;
+const double CDF97WaveletTransform::invK2 = 1.149604398;//1.6257861322319229;
 
 CDF97WaveletTransform::CDF97WaveletTransform() { }
 
 CDF97WaveletTransform::~CDF97WaveletTransform() { }
 
 void CDF97WaveletTransform::decompositionStep(double* data, double* transform, unsigned int size) {
-//	memcpy(transform, data, sizeof(double) * size);
-	double a = 0.0;
 	unsigned int i = 0;
 	unsigned int halfSize = size / 2;
 
 	//Predict 1
-	a = -1.586134342;
 	for(i = 1; i < size - 2; i += 2) {
-		data[i] += a * (data[i - 1] + data[i + 1]);
+		data[i] += a1 * (data[i - 1] + data[i + 1]);
 	}
-	data[size - 1] += 2.0 * a * data[size - 2];
+	data[size - 1] += 2.0 * a1 * data[size - 2];
 
 	//Update 1
-	a = -0.05298011854;
-	data[0] += 2.0 * a * data[1];
+	data[0] += 2.0 * a2 * data[1];
 	for(i = 2; i < size; i += 2) {
-		data[i] += a * (data[i - 1] + data[i + 1]);
+		data[i] += a2 * (data[i - 1] + data[i + 1]);
 	}
 
 	//Predict 2
-	a = 0.8829110762;
 	for(i = 1; i < size - 2; i += 2) {
-		data[i] += a * (data[i - 1] + data[i + 1]);
+		data[i] += a3 * (data[i - 1] + data[i + 1]);
 	}
-	data[size - 1] += 2.0 * a * data[size - 2];
+	data[size - 1] += 2.0 * a3 * data[size - 2];
 
 	//Update 2
-	a = 0.4435068522;
-	data[0] += 2.0 * a * data[1];
+	data[0] += 2.0 * a4 * data[1];
 	for(i = 2; i < size; i += 2) {
-		data[i] += a * (data[i - 1] + data[i + 1]);
+		data[i] += a4 * (data[i - 1] + data[i + 1]);
 	}
 
 	//Scale
-	a = 1 / 1.149604398;
 	for(i = 0; i < halfSize; ++i) {
-		data[2 * i] /= a;
-		data[(2 * i) + 1] *= a;
+		data[2 * i] *= k1;
+		data[(2 * i) + 1] *= k2;
 	}
 
 	//Pack
@@ -61,9 +71,6 @@ void CDF97WaveletTransform::decompositionStep(double* data, double* transform, u
 }
 
 void CDF97WaveletTransform::inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size) {
-//	memcpy(inverseTransform, data, sizeof(double) * size * 2);
-
-	double a = 0.0;
 	unsigned int i = 0;
 	unsigned int transformSize = 2 * size;
 
@@ -74,38 +81,33 @@ void CDF97WaveletTransform::inverseDecompositionStep(double* data, double* inver
 	}
 
 	//Undo scale
-	a = 1.149604398;
 	for(i = 0; i < size; ++i) {
-		inverseTransform[2 * i] /= a;
-		inverseTransform[(2 * i) + 1] *= a;
+		inverseTransform[2 * i] *= invK1;
+		inverseTransform[(2 * i) + 1] *= invK2;
 	}
 
 	//Undo update 2
-	a = -0.4435068522;
-	inverseTransform[0] += 2.0 * a * inverseTransform[1];
+	inverseTransform[0] += 2.0 * invA1 * inverseTransform[1];
 	for(i = 2; i < transformSize; i += 2) {
-		inverseTransform[i] += a * (inverseTransform[i - 1] + inverseTransform[i + 1]);
+		inverseTransform[i] += invA1 * (inverseTransform[i - 1] + inverseTransform[i + 1]);
 	}
 
 	//Undo predict 2
-	a = -0.8829110762;
 	for(i = 1; i < transformSize - 2; i += 2) {
-		inverseTransform[i] += a * (inverseTransform[i - 1] + inverseTransform[i + 1]);
+		inverseTransform[i] += invA2 * (inverseTransform[i - 1] + inverseTransform[i + 1]);
 	}
-	inverseTransform[transformSize - 1] = 2.0 * a * inverseTransform[transformSize - 2];
+	inverseTransform[transformSize - 1] = 2.0 * invA2 * inverseTransform[transformSize - 2];
 
 	//Undo update 1
-	a = 0.05298011854;
-	inverseTransform[0] = 2.0 * a * inverseTransform[1];
+	inverseTransform[0] = 2.0 * invA3 * inverseTransform[1];
 	for(i = 2; i < transformSize; i += 2) {
-		inverseTransform[i] += a * (inverseTransform[i - 1] + inverseTransform[i + 1]);
+		inverseTransform[i] += invA3 * (inverseTransform[i - 1] + inverseTransform[i + 1]);
 	}
 
 	//Undo predict 1
-	a = 1.586134342;
 	for(i = 1; i < transformSize - 2; i += 2) {
-		inverseTransform[i] += a * (inverseTransform[i - 1] + inverseTransform[i + 1]);
+		inverseTransform[i] += invA4 * (inverseTransform[i - 1] + inverseTransform[i + 1]);
 	}
-	inverseTransform[transformSize - 1] += 2.0 * a * inverseTransform[transformSize - 2];
+	inverseTransform[transformSize - 1] += 2.0 * invA4 * inverseTransform[transformSize - 2];
 }
 
