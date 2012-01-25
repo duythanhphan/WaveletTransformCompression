@@ -15,11 +15,11 @@ const double CDF97WaveletTransform::a3 = 0.8829110762;
 const double CDF97WaveletTransform::a4 = 0.4435068522;
 
 //k1 - even, k2 - odd
-//const double CDF97WaveletTransform::k1 = 1 / 1.149604398;//0.81289306611596146;
-//const double CDF97WaveletTransform::k2 = 1.149604398;//0.61508705245700002;
+const double CDF97WaveletTransform::k1 = 1 / 1.149604398;//0.81289306611596146;
+const double CDF97WaveletTransform::k2 = 1.149604398;//0.61508705245700002;
 //other k
-const double CDF97WaveletTransform::k1 = 1.149604398;
-const double CDF97WaveletTransform::k2 = 1 / 1.149604398;
+//const double CDF97WaveletTransform::k1 = 1.149604398;
+//const double CDF97WaveletTransform::k2 = 1 / 1.149604398;
 
 const double CDF97WaveletTransform::invA1 = -0.4435068522;
 const double CDF97WaveletTransform::invA2 = -0.8829110762;
@@ -27,11 +27,11 @@ const double CDF97WaveletTransform::invA3 = 0.05298011854;
 const double CDF97WaveletTransform::invA4 = 1.586134342;
 
 //invK1 - even, invK2 - odd
-//const double CDF97WaveletTransform::invK1 = 1.149604398;//1.230174104914;
-//const double CDF97WaveletTransform::invK2 = 1 / 1.149604398;//1.6257861322319229;
+const double CDF97WaveletTransform::invK1 = 1.149604398;//1.230174104914;
+const double CDF97WaveletTransform::invK2 = 1 / 1.149604398;//1.6257861322319229;
 //other k
-const double CDF97WaveletTransform::invK1 = 1 / 1.149604398;
-const double CDF97WaveletTransform::invK2 = 1.149604398;
+//const double CDF97WaveletTransform::invK1 = 1 / 1.149604398;
+//const double CDF97WaveletTransform::invK2 = 1.149604398;
 
 
 CDF97WaveletTransform::CDF97WaveletTransform() { }
@@ -73,17 +73,10 @@ void CDF97WaveletTransform::decompositionStep(double* data, double* transform, u
 	}
 
 	//Pack
-//	for(i = 0; i < halfSize; ++i) {
-//		transform[i] = data[2 * i];
-//		transform[halfSize + i] = data[(2 * i) + 1];
-//	}
-
-	//Test pack
 	for(i = 0; i < halfSize; ++i) {
-		transform[i] = data[(2 * i) + 1];
-		transform[halfSize + i] = data[2 * i];
+		transform[i] = data[2 * i];
+		transform[halfSize + i] = data[(2 * i) + 1];
 	}
-	//Test pack
 }
 
 void CDF97WaveletTransform::inverseDecompositionStep(double* data, double* inverseTransform, unsigned int size) {
@@ -91,17 +84,10 @@ void CDF97WaveletTransform::inverseDecompositionStep(double* data, double* inver
 	unsigned int transformSize = 2 * size;
 
 	//Unpack
-//	for(i = 0; i < size; ++i) {
-//		inverseTransform[2 * i] = data[i];
-//		inverseTransform[(2 * i) + 1] = data[size + i];
-//	}
-
-	//Test unpack
 	for(i = 0; i < size; ++i) {
-		inverseTransform[2 * i] = data[size + i];
-		inverseTransform[(2 * i) + 1] = data[i];
+		inverseTransform[2 * i] = data[i];
+		inverseTransform[(2 * i) + 1] = data[size + i];
 	}
-	//Test unpack
 
 	//Undo scale
 	for(i = 0; i < size; ++i) {
@@ -119,10 +105,10 @@ void CDF97WaveletTransform::inverseDecompositionStep(double* data, double* inver
 	for(i = 1; i < transformSize - 2; i += 2) {
 		inverseTransform[i] += invA2 * (inverseTransform[i - 1] + inverseTransform[i + 1]);
 	}
-	inverseTransform[transformSize - 1] = 2.0 * invA2 * inverseTransform[transformSize - 2];
+	inverseTransform[transformSize - 1] += 2.0 * invA2 * inverseTransform[transformSize - 2];
 
 	//Undo update 1
-	inverseTransform[0] = 2.0 * invA3 * inverseTransform[1];
+	inverseTransform[0] += 2.0 * invA3 * inverseTransform[1];
 	for(i = 2; i < transformSize; i += 2) {
 		inverseTransform[i] += invA3 * (inverseTransform[i - 1] + inverseTransform[i + 1]);
 	}
