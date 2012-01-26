@@ -15,8 +15,8 @@ const double CDF97WaveletTransform::a3 = 0.8829110762;
 const double CDF97WaveletTransform::a4 = 0.4435068522;
 
 //k1 - even, k2 - odd
-const double CDF97WaveletTransform::k1 = 1 / 1.149604398;
-const double CDF97WaveletTransform::k2 = 1.149604398;
+const double CDF97WaveletTransform::k1 = 1.149604398;
+const double CDF97WaveletTransform::k2 = 1 / 1.149604398;
 
 const double CDF97WaveletTransform::invA1 = -0.4435068522;
 const double CDF97WaveletTransform::invA2 = -0.8829110762;
@@ -24,8 +24,8 @@ const double CDF97WaveletTransform::invA3 = 0.05298011854;
 const double CDF97WaveletTransform::invA4 = 1.586134342;
 
 //invK1 - even, invK2 - odd
-const double CDF97WaveletTransform::invK1 = 1.149604398;
-const double CDF97WaveletTransform::invK2 = 1 / 1.149604398;
+const double CDF97WaveletTransform::invK1 = 1 / 1.149604398;
+const double CDF97WaveletTransform::invK2 = 1.149604398;
 
 CDF97WaveletTransform::CDF97WaveletTransform() { }
 
